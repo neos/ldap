@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<package xmlns="http://typo3.org/ns/2008/flow3/package">
+	<key>LDAP</key>
+	<title>LDAP Authentication</title>
+	<description>LDAP Authentication for FLOW3</description>
+	<version>0.0.1-dev</version>
+	<state>Development</state>
+	<categories>
+		<category>Testing</category>
+	</categories>
+	<parties>
+		<person role="LeadDeveloper">
+			<name>Rens Admiraal</name>
+			<email>rens.admiraal@typo3.org</email>
+			<website></website>
+			<organisation>TYPO3 Association</organisation>
+			<repositoryUserName></repositoryUserName>
+		</person>
+		<person role="LeadDeveloper">
+			<name>Peter Beernink</name>
+			<email>p.beernink@drecomm.nl</email>
+			<website></website>
+			<organisation>Drecomm Internet Intelligence</organisation>
+			<repositoryUserName></repositoryUserName>
+		</person>
+	</parties>
+	<constraints>
+		<depends/>
+		<conflicts/>
+		<suggests/>
+	</constraints>
+</package>

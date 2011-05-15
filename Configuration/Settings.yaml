@@ -1,0 +1,16 @@
+-
+
+FLOW3:
+  security:
+    enable: y
+    authentication:
+      providers:
+        LDAP:
+          providerClass: 'F3\LDAP\Security\Authentication\Provider\LDAPProvider'
+          options:
+            host:
+            port: 389
+            baseDn: dc=example,dc=com
+            filter: uid=?
+            attributes:
+              dn: 'dn'

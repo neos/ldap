@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="nl-NL" xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+		<title>Login</title>
+		<base href="http://blog.flow3/" />
+	</head>
+	<body>
+		<f:form action="authenticate" >
+			<f:flashMessages class="errorMessages" />
+				<div>
+					<label>User</label>
+					<input type="text" name="F3[FLOW3][Security][Authentication][Token][UsernamePassword][username]" id="username" value="{username}" />
+				</div>
+				<div>
+					<label>Password</label>
+					<input type="password" name="F3[FLOW3][Security][Authentication][Token][UsernamePassword][password]" id="password" />
+				</div>
+				<f:form.submit value="Login" />
+			</div>
+		</f:form>
+	</body>
+</html>
