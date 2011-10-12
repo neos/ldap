@@ -8,9 +8,9 @@ FLOW3:
         LDAP:
           providerClass: 'TYPO3\LDAP\Security\Authentication\Provider\LDAPProvider'
           options:
-            host:
+            host: localhost
             port: 389
-            baseDn: dc=example,dc=com
+            baseDn: dc=my-domain,dc=com
             filter: uid=?
             attributes:
               dn: 'dn'

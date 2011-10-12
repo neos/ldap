@@ -42,7 +42,7 @@ class LoginController extends \TYPO3\FLOW3\MVC\Controller\ActionController {
 	protected $securityContext;
 
 	/**
-	 * @var \TYPO3\LDAP\Domain\Repository\AccountRepository
+	 * @var \TYPO3\FLOW3\Security\AccountRepository
 	 * @inject
 	 */
 	protected $accountRepository;

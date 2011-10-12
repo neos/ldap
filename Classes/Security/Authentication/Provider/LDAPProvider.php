@@ -11,7 +11,7 @@ namespace TYPO3\LDAP\Security\Authentication\Provider;
 class LDAPProvider extends \TYPO3\FLOW3\Security\Authentication\Provider\PersistedUsernamePasswordProvider {
 
 	/**
-	 * @var \TYPO3\LDAP\Domain\Repository\AccountRepository
+	 * @var \TYPO3\FLOW3\Security\AccountRepository
 	 * @inject
 	 */
 	protected $accountRepository;
@@ -57,8 +57,7 @@ class LDAPProvider extends \TYPO3\FLOW3\Security\Authentication\Provider\Persist
 				if ($userDn) {
 					$account = $this->accountRepository->findActiveByAccountIdentifierAndAuthenticationProviderName($credentials['username'], $this->name);
 					if (empty($account)) {
-						$account = new \TYPO3\LDAP\Domain\Model\Account();
-						$account->setDn($userDn);
+						$account = new \TYPO3\FLOW3\Security\Account();
 						$account->setAccountIdentifier($credentials['username']);
 						$account->setAuthenticationProviderName($this->name);
 						$this->accountRepository->add($account);
