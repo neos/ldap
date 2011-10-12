@@ -1,6 +1,6 @@
 <?php
 declare(ENCODING = 'utf-8');
-namespace F3\LDAP\Service;
+namespace TYPO3\LDAP\Service;
 
 /*                                                                        *
  * This script belongs to the FLOW3 package "LDAP".                       *
@@ -25,7 +25,7 @@ namespace F3\LDAP\Service;
 /**
  * A simple LDAP authentication service
  *
- * @throws \F3\FLOW3\Error\Exception
+ * @throws \TYPO3\FLOW3\Error\Exception
  */
 class LDAP {
 
@@ -35,7 +35,7 @@ class LDAP {
 	protected $options;
 
 	/**
-	 * @throws \F3\FLOW3\Error\Exception
+	 * @throws \TYPO3\FLOW3\Error\Exception
 	 * @param array $options
 	 * @return void
 	 * @author Rens Admiraal <rens.admiraal@typo3.org>
@@ -43,7 +43,7 @@ class LDAP {
 	public function __construct(array $options) {
 		$this->options = $options;
 		if (!function_exists('ldap_connect')) {
-			throw new \F3\FLOW3\Error\Exception('PHP is not compiled with LDAP support', 1305406047);
+			throw new \TYPO3\FLOW3\Error\Exception('PHP is not compiled with LDAP support', 1305406047);
 		}
 	}
 
@@ -77,7 +77,7 @@ class LDAP {
 					}
 				}
 			}
-		} catch (\F3\FLOW3\Error\Exception $exception) {
+		} catch (\TYPO3\FLOW3\Error\Exception $exception) {
 			return FALSE;
 		}
 		return FALSE;
@@ -99,7 +99,7 @@ class LDAP {
 				2
 			);
 			return TRUE;
-		} catch (\F3\FLOW3\Error\Exception $exception) {
+		} catch (\TYPO3\FLOW3\Error\Exception $exception) {
 			return FALSE;
 		}
 	}

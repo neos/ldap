@@ -1,6 +1,6 @@
 <?php
 declare(ENCODING = 'utf-8');
-namespace F3\LDAP\Domain\Model;
+namespace TYPO3\LDAP\Domain\Model;
 
 /*                                                                        *
  * This script belongs to the FLOW3 package "LDAP".                       *
@@ -31,7 +31,7 @@ use \Doctrine\Common\Collections\ArrayCollection;
  * @scope prototype
  * @entity
  */
-class Account extends \F3\FLOW3\Security\Account {
+class Account extends \TYPO3\FLOW3\Security\Account {
 
 	/**
 	 * @var string

@@ -1,6 +1,6 @@
 <?php
 declare(ENCODING = 'utf-8');
-namespace F3\LDAP\Controller;
+namespace TYPO3\LDAP\Controller;
 
 /*                                                                        *
  * This script belongs to the FLOW3 package "LDAP".                       *
@@ -27,22 +27,22 @@ namespace F3\LDAP\Controller;
  *
  * @license http://www.gnu.org/licenses/lgpl.html GNU Lesser General Public License, version 3 or later
  */
-class LoginController extends \F3\FLOW3\MVC\Controller\ActionController {
+class LoginController extends \TYPO3\FLOW3\MVC\Controller\ActionController {
 
 	/**
-	 * @var \F3\FLOW3\Security\Authentication\AuthenticationManagerInterface
+	 * @var \TYPO3\FLOW3\Security\Authentication\AuthenticationManagerInterface
 	 * @inject
 	 */
 	protected $authenticationManager;
 
 	/**
-	 * @var \F3\FLOW3\Security\Context
+	 * @var \TYPO3\FLOW3\Security\Context
 	 * @inject
 	 */
 	protected $securityContext;
 
 	/**
-	 * @var \F3\LDAP\Domain\Repository\AccountRepository
+	 * @var \TYPO3\LDAP\Domain\Repository\AccountRepository
 	 * @inject
 	 */
 	protected $accountRepository;
@@ -72,7 +72,7 @@ class LoginController extends \F3\FLOW3\MVC\Controller\ActionController {
 		try {
 			$this->authenticationManager->authenticate();
 			$authenticated = TRUE;
-		} catch (\F3\FLOW3\Security\Exception\AuthenticationRequiredException $exception) {
+		} catch (\TYPO3\FLOW3\Security\Exception\AuthenticationRequiredException $exception) {
 		}
 
 		if ($authenticated) {

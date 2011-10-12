@@ -6,7 +6,7 @@ FLOW3:
     authentication:
       providers:
         LDAP:
-          providerClass: 'F3\LDAP\Security\Authentication\Provider\LDAPProvider'
+          providerClass: 'TYPO3\LDAP\Security\Authentication\Provider\LDAPProvider'
           options:
             host:
             port: 389

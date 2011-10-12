@@ -1,6 +1,6 @@
 <?php
 declare(ENCODING = 'utf-8');
-namespace F3\LDAP\Domain\Repository;
+namespace TYPO3\LDAP\Domain\Repository;
 
 /*                                                                        *
  * This script belongs to the FLOW3 package "LDAP".                       *
@@ -28,12 +28,12 @@ namespace F3\LDAP\Domain\Repository;
  * @license http://opensource.org/licenses/gpl-license.php GNU Public License, version 2
  * @scope singleton
  */
-class AccountRepository extends \F3\FLOW3\Security\AccountRepository {
+class AccountRepository extends \TYPO3\FLOW3\Security\AccountRepository {
 
 	/**
 	 * @var string
 	 */
-	protected $objectType = 'F3\LDAP\Domain\Model\Account';
+	protected $objectType = 'TYPO3\LDAP\Domain\Model\Account';
 
 }
 

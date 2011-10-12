@@ -1,6 +1,6 @@
 <?php
 declare(ENCODING = 'utf-8');
-namespace F3\LDAP\Security\Authentication\Provider;
+namespace TYPO3\LDAP\Security\Authentication\Provider;
 
 /**
  * LDAP Authentication provider
@@ -8,16 +8,16 @@ namespace F3\LDAP\Security\Authentication\Provider;
  * @license http://www.gnu.org/licenses/lgpl.html GNU Lesser General Public License, version 3 or later
  * @scope prototype
  */
-class LDAPProvider extends \F3\FLOW3\Security\Authentication\Provider\PersistedUsernamePasswordProvider {
+class LDAPProvider extends \TYPO3\FLOW3\Security\Authentication\Provider\PersistedUsernamePasswordProvider {
 
 	/**
-	 * @var \F3\LDAP\Domain\Repository\AccountRepository
+	 * @var \TYPO3\LDAP\Domain\Repository\AccountRepository
 	 * @inject
 	 */
 	protected $accountRepository;
 
 	/**
-	 * @var \F3\LDAP\Service\LDAP
+	 * @var \TYPO3\LDAP\Service\LDAP
 	 */
 	protected $ldapService;
 
@@ -31,7 +31,7 @@ class LDAPProvider extends \F3\FLOW3\Security\Authentication\Provider\PersistedU
 	 */
 	public function __construct($name, array $options) {
 		$this->name = $name;
-		$this->ldapService = new \F3\LDAP\Service\LDAP($options);
+		$this->ldapService = new \TYPO3\LDAP\Service\LDAP($options);
 	}
 
 	/**
@@ -39,13 +39,13 @@ class LDAPProvider extends \F3\FLOW3\Security\Authentication\Provider\PersistedU
 	 * tries to authenticate against cached credentials in the database (cached on the last succesful login
 	 * for the user to authenticate).
 	 *
-	 * @param F3\FLOW3\Security\Authentication\TokenInterface $authenticationToken The token to be authenticated
+	 * @param TYPO3\FLOW3\Security\Authentication\TokenInterface $authenticationToken The token to be authenticated
 	 * @return void
 	 * @author Rens Admiraal <rens.admiraal@typo3.org>
 	 */
-	public function authenticate(\F3\FLOW3\Security\Authentication\TokenInterface $authenticationToken) {
-		if (!($authenticationToken instanceof \F3\FLOW3\Security\Authentication\Token\UsernamePassword)) {
-			throw new \F3\FLOW3\Security\Exception\UnsupportedAuthenticationTokenException('This provider cannot authenticate the given token.', 1217339840);
+	public function authenticate(\TYPO3\FLOW3\Security\Authentication\TokenInterface $authenticationToken) {
+		if (!($authenticationToken instanceof \TYPO3\FLOW3\Security\Authentication\Token\UsernamePassword)) {
+			throw new \TYPO3\FLOW3\Security\Exception\UnsupportedAuthenticationTokenException('This provider cannot authenticate the given token.', 1217339840);
 		}
 
 		$account = NULL;
@@ -57,7 +57,7 @@ class LDAPProvider extends \F3\FLOW3\Security\Authentication\Provider\PersistedU
 				if ($userDn) {
 					$account = $this->accountRepository->findActiveByAccountIdentifierAndAuthenticationProviderName($credentials['username'], $this->name);
 					if (empty($account)) {
-						$account = new \F3\LDAP\Domain\Model\Account();
+						$account = new \TYPO3\LDAP\Domain\Model\Account();
 						$account->setDn($userDn);
 						$account->setAccountIdentifier($credentials['username']);
 						$account->setAuthenticationProviderName($this->name);
@@ -69,13 +69,13 @@ class LDAPProvider extends \F3\FLOW3\Security\Authentication\Provider\PersistedU
 					if (is_object($account)) {
 							// Cache the password to have cached login if LDAP is unavailable
 						$account->setCredentialsSource($this->hashService->generateSaltedMd5($credentials['password']));
-						$authenticationToken->setAuthenticationStatus(\F3\FLOW3\Security\Authentication\TokenInterface::AUTHENTICATION_SUCCESSFUL);
+						$authenticationToken->setAuthenticationStatus(\TYPO3\FLOW3\Security\Authentication\TokenInterface::AUTHENTICATION_SUCCESSFUL);
 						$authenticationToken->setAccount($account);
-					} elseif ($authenticationToken->getAuthenticationStatus() !== \F3\FLOW3\Security\Authentication\TokenInterface::AUTHENTICATION_SUCCESSFUL) {
-						$authenticationToken->setAuthenticationStatus(\F3\FLOW3\Security\Authentication\TokenInterface::NO_CREDENTIALS_GIVEN);
+					} elseif ($authenticationToken->getAuthenticationStatus() !== \TYPO3\FLOW3\Security\Authentication\TokenInterface::AUTHENTICATION_SUCCESSFUL) {
+						$authenticationToken->setAuthenticationStatus(\TYPO3\FLOW3\Security\Authentication\TokenInterface::NO_CREDENTIALS_GIVEN);
 					}
 				} else {
-					$authenticationToken->setAuthenticationStatus(\F3\FLOW3\Security\Authentication\TokenInterface::WRONG_CREDENTIALS);
+					$authenticationToken->setAuthenticationStatus(\TYPO3\FLOW3\Security\Authentication\TokenInterface::WRONG_CREDENTIALS);
 				}
 			} else {
 				$account = $this->accountRepository->findActiveByAccountIdentifierAndAuthenticationProviderName($credentials['username'], $this->name);
@@ -85,18 +85,18 @@ class LDAPProvider extends \F3\FLOW3\Security\Authentication\Provider\PersistedU
 				 */
 				if (is_object($account)) {
 					if ($this->hashService->validateSaltedMd5($credentials['password'], $account->getCredentialsSource())) {
-						$authenticationToken->setAuthenticationStatus(\F3\FLOW3\Security\Authentication\TokenInterface::AUTHENTICATION_SUCCESSFUL);
+						$authenticationToken->setAuthenticationStatus(\TYPO3\FLOW3\Security\Authentication\TokenInterface::AUTHENTICATION_SUCCESSFUL);
 						$authenticationToken->setAccount($account);
 					} else {
-						$authenticationToken->setAuthenticationStatus(\F3\FLOW3\Security\Authentication\TokenInterface::WRONG_CREDENTIALS);
+						$authenticationToken->setAuthenticationStatus(\TYPO3\FLOW3\Security\Authentication\TokenInterface::WRONG_CREDENTIALS);
 					}
-				} elseif ($authenticationToken->getAuthenticationStatus() !== \F3\FLOW3\Security\Authentication\TokenInterface::AUTHENTICATION_SUCCESSFUL) {
-					$authenticationToken->setAuthenticationStatus(\F3\FLOW3\Security\Authentication\TokenInterface::NO_CREDENTIALS_GIVEN);
+				} elseif ($authenticationToken->getAuthenticationStatus() !== \TYPO3\FLOW3\Security\Authentication\TokenInterface::AUTHENTICATION_SUCCESSFUL) {
+					$authenticationToken->setAuthenticationStatus(\TYPO3\FLOW3\Security\Authentication\TokenInterface::NO_CREDENTIALS_GIVEN);
 				}
 
 			}
 		} else {
-			$authenticationToken->setAuthenticationStatus(\F3\FLOW3\Security\Authentication\TokenInterface::NO_CREDENTIALS_GIVEN);
+			$authenticationToken->setAuthenticationStatus(\TYPO3\FLOW3\Security\Authentication\TokenInterface::NO_CREDENTIALS_GIVEN);
 		}
 	}
 }
