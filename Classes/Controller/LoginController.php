@@ -1,9 +1,8 @@
 <?php
-declare(ENCODING = 'utf-8');
 namespace TYPO3\LDAP\Controller;
 
 /*                                                                        *
- * This script belongs to the FLOW3 package "LDAP".                       *
+ * This script belongs to the FLOW3 package "TYPO3.LDAP".                 *
  *                                                                        *
  * It is free software; you can redistribute it and/or modify it under    *
  * the terms of the GNU Lesser General Public License as published by the *
@@ -22,37 +21,38 @@ namespace TYPO3\LDAP\Controller;
  * The TYPO3 project - inspiring people to share!                         *
  *                                                                        */
 
+use TYPO3\FLOW3\Annotations as FLOW3;
+
 /**
  * An example login controller with a login -> status -> logout workflow
- *
- * @license http://www.gnu.org/licenses/lgpl.html GNU Lesser General Public License, version 3 or later
+ * @FLOW3\Scope("singleton")
  */
 class LoginController extends \TYPO3\FLOW3\MVC\Controller\ActionController {
 
 	/**
 	 * @var \TYPO3\FLOW3\Security\Authentication\AuthenticationManagerInterface
-	 * @inject
+	 * @FLOW3\Inject
 	 */
 	protected $authenticationManager;
 
 	/**
 	 * @var \TYPO3\FLOW3\Security\Context
-	 * @inject
+	 * @FLOW3\Inject
 	 */
 	protected $securityContext;
 
 	/**
 	 * @var \TYPO3\FLOW3\Security\AccountRepository
-	 * @inject
+	 * @FLOW3\Inject
 	 */
 	protected $accountRepository;
+
 
 	/**
 	 * Default action, displays the login screen
 	 *
 	 * @param string $username Optional: A username to prefill into the username field
 	 * @return void
-	 * @author Robert Lemke <robert@typo3.org>
 	 */
 	public function indexAction($username = NULL) {
 		$this->view->assign('username', $username);
@@ -65,20 +65,20 @@ class LoginController extends \TYPO3\FLOW3\MVC\Controller\ActionController {
 	 * to the login screen.
 	 *
 	 * @return void
-	 * @author Robert Lemke <robert@typo3.org>
 	 */
 	public function authenticateAction() {
 		$authenticated = FALSE;
 		try {
 			$this->authenticationManager->authenticate();
 			$authenticated = TRUE;
-		} catch (\TYPO3\FLOW3\Security\Exception\AuthenticationRequiredException $exception) {
+		} catch (\Exception $exception) {
+			$message = $exception->getMessage();
 		}
 
 		if ($authenticated) {
 			$this->redirect('status');
 		} else {
-			$this->flashMessageContainer->add('Wrong username or password.');
+			$this->addFlashMessage($message);
 			$this->redirect('index');
 		}
 	}
@@ -90,17 +90,17 @@ class LoginController extends \TYPO3\FLOW3\MVC\Controller\ActionController {
 	 */
 	public function logoutAction() {
 		$this->authenticationManager->logout();
-		$this->flashMessageContainer->add('Successfully logged out.');
+		$this->addFlashMessage('Successfully logged out.');
 		$this->redirect('index');
 	}
 
 	/**
 	 * @return void
-	 * @author Rens Admiraal <rens.admiraal@typo3.org>
 	 */
 	public function statusAction() {
 		$this->view->assign('activeTokens', $this->securityContext->getAuthenticationTokens());
 	}
+
 }
 
 ?>

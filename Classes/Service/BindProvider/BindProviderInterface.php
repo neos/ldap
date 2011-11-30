@@ -1,5 +1,5 @@
 <?php
-namespace TYPO3\LDAP;
+namespace TYPO3\LDAP\Service\BindProvider;
 
 /*                                                                        *
  * This script belongs to the FLOW3 package "TYPO3.LDAP".                 *
@@ -21,16 +21,40 @@ namespace TYPO3\LDAP;
  * The TYPO3 project - inspiring people to share!                         *
  *                                                                        */
 
-use TYPO3\FLOW3\Package\Package as BasePackage;
-use TYPO3\FLOW3\Annotations as FLOW3;
-
 /**
- * The LDAP Package
- *
- * @FLOW3\Scope("singleton")
+ * Interface for binding.
  */
-class Package extends BasePackage {
+interface BindProviderInterface {
 
+	/**
+	 * The link identifier to connect to the LDAP server
+	 *
+	 * @return resource
+	 */
+	public function getLinkIdentifier();
+
+	/**
+	 * Bind to the server as defined by the settings
+	 *
+	 * @param $username
+	 * @param $password
+	 */
+	public function bind($username, $password);
+
+	/**
+	 * Bind by dn and password
+	 *
+	 * @param $dn
+	 * @param $password
+	 */
+	public function verifyCredentials($dn, $password);
+
+	/**
+	 * Get a filtered username
+	 *
+	 * @param $username
+	 */
+	public function getFilteredUsername($username);
 }
 
 ?>

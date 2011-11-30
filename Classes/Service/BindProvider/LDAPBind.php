@@ -1,0 +1,101 @@
+<?php
+namespace TYPO3\LDAP\Service\BindProvider;
+
+/*                                                                        *
+ * This script belongs to the FLOW3 package "TYPO3.LDAP".                 *
+ *                                                                        *
+ * It is free software; you can redistribute it and/or modify it under    *
+ * the terms of the GNU Lesser General Public License as published by the *
+ * Free Software Foundation, either version 3 of the License, or (at your *
+ * option) any later version.                                             *
+ *                                                                        *
+ * This script is distributed in the hope that it will be useful, but     *
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHAN-    *
+ * TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser       *
+ * General Public License for more details.                               *
+ *                                                                        *
+ * You should have received a copy of the GNU Lesser General Public       *
+ * License along with the script.                                         *
+ * If not, see http://www.gnu.org/licenses/lgpl.html                      *
+ *                                                                        *
+ * The TYPO3 project - inspiring people to share!                         *
+ *                                                                        */
+
+use TYPO3\FLOW3\Annotations as FLOW3;
+
+/**
+ * Bind to an OpenLDAP Server
+ *
+ * @FLOW3\Scope("prototype")
+ */
+class LDAPBind extends AbstractBindProvider {
+
+	/**
+	 * Bind to an ldap server in three different ways.
+	 *
+	 * Settings example for anonymous binding (dn and password will be ignored):
+	 *   ...
+	 *   bind:
+	 *	   anonymous: TRUE
+	 *   filter:
+	 *	   account: '(uid=?)'
+	 *
+	 * Settings example for binding with rootDN and admin password:
+	 *   ...
+	 *   bind:
+	 *	   dn: 'uid=admin,dc=example,dc=com'
+	 *	   password: 'secret'
+	 *   filter:
+	 *	   account: '(uid=?)'
+	 *
+	 * Settings example for binding with userid and password:
+	 *   ...
+	 *   bind:
+	 *	   dn: 'uid=?,ou=Users,dc=example,dc=com'
+	 *   filter:
+	 *	   account: '(uid=?)'
+	 *
+	 * @param string $username
+	 * @param string $password
+	 * @throws \TYPO3\FLOW3\Error\Exception
+	 */
+	public function bind($username, $password) {
+		try {
+			$anonymousBind = FALSE;
+			if (!empty($this->options['bind']['anonymous'])) {
+				if ($this->options['bind']['anonymous'] === TRUE) {
+					ldap_bind($this->linkIdentifier);
+					$anonymousBind = TRUE;
+				}
+			}
+
+			if (!$anonymousBind) {
+				if (empty($this->options['bind']['password'])) {
+					ldap_bind($this->linkIdentifier, str_replace('?', $username, $this->options['bind']['dn']), $password);
+				} else {
+					ldap_bind($this->linkIdentifier, $this->options['bind']['dn'], $this->options['bind']['password']);
+				}
+			}
+		} catch (\Exception $exception) {
+			throw new \TYPO3\FLOW3\Error\Exception('Could not bind to LDAP server', 1327748989);
+		}
+	}
+
+	/**
+	 * Bind by $username and $password
+	 *
+	 * @param string $username
+	 * @param string $password
+	 * @throws \TYPO3\FLOW3\Error\Exception
+	 */
+	public function verifyCredentials($username, $password) {
+		try {
+			ldap_bind($this->linkIdentifier, $username, $password);
+		} catch (\Exception $exception) {
+			throw new \TYPO3\FLOW3\Error\Exception('Could not verify credentials for dn: "' . $username . '"', 1327749076);
+		}
+	}
+
+}
+
+?>

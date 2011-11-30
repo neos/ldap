@@ -1,25 +1,41 @@
 <?php
-declare(ENCODING = 'utf-8');
 namespace TYPO3\LDAP\Security\Authentication\Provider;
+
+/*                                                                        *
+ * This script belongs to the FLOW3 package "TYPO3.LDAP".                 *
+ *                                                                        *
+ * It is free software; you can redistribute it and/or modify it under    *
+ * the terms of the GNU Lesser General Public License as published by the *
+ * Free Software Foundation, either version 3 of the License, or (at your *
+ * option) any later version.                                             *
+ *                                                                        *
+ * This script is distributed in the hope that it will be useful, but     *
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHAN-    *
+ * TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser       *
+ * General Public License for more details.                               *
+ *                                                                        *
+ * You should have received a copy of the GNU Lesser General Public       *
+ * License along with the script.                                         *
+ * If not, see http://www.gnu.org/licenses/lgpl.html                      *
+ *                                                                        *
+ * The TYPO3 project - inspiring people to share!                         *
+ *                                                                        */
+
+use TYPO3\FLOW3\Annotations as FLOW3;
+
+use TYPO3\FLOW3\Security\Authentication\TokenInterface;
 
 /**
  * LDAP Authentication provider
  *
- * @license http://www.gnu.org/licenses/lgpl.html GNU Lesser General Public License, version 3 or later
- * @scope prototype
+ * @FLOW3\Scope("prototype")
  */
 class LDAPProvider extends \TYPO3\FLOW3\Security\Authentication\Provider\PersistedUsernamePasswordProvider {
 
 	/**
-	 * @var \TYPO3\FLOW3\Security\AccountRepository
-	 * @inject
+	 * @var \TYPO3\LDAP\Service\DirectoryService
 	 */
-	protected $accountRepository;
-
-	/**
-	 * @var \TYPO3\LDAP\Service\LDAP
-	 */
-	protected $ldapService;
+	protected $directoryService;
 
 	/**
 	 * Constructor
@@ -27,23 +43,21 @@ class LDAPProvider extends \TYPO3\FLOW3\Security\Authentication\Provider\Persist
 	 * @param string $name The name of this authentication provider
 	 * @param array $options Additional configuration options
 	 * @return void
-	 * @author Rens Admiraal <rens.admiraal@typo3.org>
 	 */
 	public function __construct($name, array $options) {
 		$this->name = $name;
-		$this->ldapService = new \TYPO3\LDAP\Service\LDAP($options);
+		$this->directoryService = new \TYPO3\LDAP\Service\DirectoryService($name, $options);
 	}
 
 	/**
 	 * Authenticate the current token. If it's not possible to connect to the LDAP server the provider
-	 * tries to authenticate against cached credentials in the database (cached on the last succesful login
-	 * for the user to authenticate).
+	 * tries to authenticate against cached credentials in the database that were
+	 * cached on the last successful login for the user to authenticate.
 	 *
 	 * @param TYPO3\FLOW3\Security\Authentication\TokenInterface $authenticationToken The token to be authenticated
 	 * @return void
-	 * @author Rens Admiraal <rens.admiraal@typo3.org>
 	 */
-	public function authenticate(\TYPO3\FLOW3\Security\Authentication\TokenInterface $authenticationToken) {
+	public function authenticate(TokenInterface $authenticationToken) {
 		if (!($authenticationToken instanceof \TYPO3\FLOW3\Security\Authentication\Token\UsernamePassword)) {
 			throw new \TYPO3\FLOW3\Security\Exception\UnsupportedAuthenticationTokenException('This provider cannot authenticate the given token.', 1217339840);
 		}
@@ -52,52 +66,66 @@ class LDAPProvider extends \TYPO3\FLOW3\Security\Authentication\Provider\Persist
 		$credentials = $authenticationToken->getCredentials();
 
 		if (is_array($credentials) && isset($credentials['username'])) {
-			if ($this->ldapService->isServerOnline()) {
-				$userDn = $this->ldapService->authenticate($credentials['username'], $credentials['password']);
-				if ($userDn) {
-					$account = $this->accountRepository->findActiveByAccountIdentifierAndAuthenticationProviderName($credentials['username'], $this->name);
-					if (empty($account)) {
-						$account = new \TYPO3\FLOW3\Security\Account();
-						$account->setAccountIdentifier($credentials['username']);
-						$account->setAuthenticationProviderName($this->name);
-						$this->accountRepository->add($account);
+			if ($this->directoryService->isServerOnline()) {
+				try {
+					$ldapUser = $this->directoryService->authenticate($credentials['username'], $credentials['password']);
 
-							// @todo: create party for name
-					}
+					if ($ldapUser) {
+						$account = $this->accountRepository->findActiveByAccountIdentifierAndAuthenticationProviderName($credentials['username'], $this->name);
+						if (empty($account)) {
+							$account = new \TYPO3\FLOW3\Security\Account();
+							$account->setAccountIdentifier($credentials['username']);
+							$account->setAuthenticationProviderName($this->name);
+							$this->accountRepository->add($account);
 
-					if (is_object($account)) {
+							$this->createParty($account, $ldapUser);
+						}
+
+						if ($account instanceof \TYPO3\FLOW3\Security\Account) {
 							// Cache the password to have cached login if LDAP is unavailable
-						$account->setCredentialsSource($this->hashService->generateSaltedMd5($credentials['password']));
-						$authenticationToken->setAuthenticationStatus(\TYPO3\FLOW3\Security\Authentication\TokenInterface::AUTHENTICATION_SUCCESSFUL);
-						$authenticationToken->setAccount($account);
-					} elseif ($authenticationToken->getAuthenticationStatus() !== \TYPO3\FLOW3\Security\Authentication\TokenInterface::AUTHENTICATION_SUCCESSFUL) {
-						$authenticationToken->setAuthenticationStatus(\TYPO3\FLOW3\Security\Authentication\TokenInterface::NO_CREDENTIALS_GIVEN);
+							$account->setCredentialsSource($this->hashService->generateHmac($credentials['password']));
+							$authenticationToken->setAuthenticationStatus(TokenInterface::AUTHENTICATION_SUCCESSFUL);
+							$authenticationToken->setAccount($account);
+						} elseif ($authenticationToken->getAuthenticationStatus() !== TokenInterface::AUTHENTICATION_SUCCESSFUL) {
+							$authenticationToken->setAuthenticationStatus(TokenInterface::NO_CREDENTIALS_GIVEN);
+						}
+					} else {
+						$authenticationToken->setAuthenticationStatus(TokenInterface::WRONG_CREDENTIALS);
 					}
-				} else {
-					$authenticationToken->setAuthenticationStatus(\TYPO3\FLOW3\Security\Authentication\TokenInterface::WRONG_CREDENTIALS);
+
+				} catch (\Exception $exception) {
 				}
 			} else {
 				$account = $this->accountRepository->findActiveByAccountIdentifierAndAuthenticationProviderName($credentials['username'], $this->name);
 
-				/**
-				 * Server not available, fallback to the cached password hash
-				 */
-				if (is_object($account)) {
-					if ($this->hashService->validateSaltedMd5($credentials['password'], $account->getCredentialsSource())) {
-						$authenticationToken->setAuthenticationStatus(\TYPO3\FLOW3\Security\Authentication\TokenInterface::AUTHENTICATION_SUCCESSFUL);
+					// Server not available, fallback to the cached password hash
+				if ($account instanceof \TYPO3\FLOW3\Security\Account) {
+					if ($this->hashService->validateHmac($credentials['password'], $account->getCredentialsSource())) {
+						$authenticationToken->setAuthenticationStatus(TokenInterface::AUTHENTICATION_SUCCESSFUL);
 						$authenticationToken->setAccount($account);
 					} else {
-						$authenticationToken->setAuthenticationStatus(\TYPO3\FLOW3\Security\Authentication\TokenInterface::WRONG_CREDENTIALS);
+						$authenticationToken->setAuthenticationStatus(TokenInterface::WRONG_CREDENTIALS);
 					}
-				} elseif ($authenticationToken->getAuthenticationStatus() !== \TYPO3\FLOW3\Security\Authentication\TokenInterface::AUTHENTICATION_SUCCESSFUL) {
-					$authenticationToken->setAuthenticationStatus(\TYPO3\FLOW3\Security\Authentication\TokenInterface::NO_CREDENTIALS_GIVEN);
+				} elseif ($authenticationToken->getAuthenticationStatus() !== TokenInterface::AUTHENTICATION_SUCCESSFUL) {
+					$authenticationToken->setAuthenticationStatus(TokenInterface::NO_CREDENTIALS_GIVEN);
 				}
-
 			}
 		} else {
-			$authenticationToken->setAuthenticationStatus(\TYPO3\FLOW3\Security\Authentication\TokenInterface::NO_CREDENTIALS_GIVEN);
+			$authenticationToken->setAuthenticationStatus(TokenInterface::NO_CREDENTIALS_GIVEN);
 		}
 	}
+
+	/**
+	 * Create a new party for a user's first login
+	 * Extend this Provider class and implement this method to create a party
+	 *
+	 * @param \TYPO3\FLOW3\Security\Account $account The freshly created account that should be used for this party
+	 * @param array $ldapSearchResult The first result returned by ldap_search
+	 * @return void
+	 */
+	protected function createParty(\TYPO3\FLOW3\Security\Account $account, array $ldapSearchResult) {
+	}
+
 }
 
 ?>

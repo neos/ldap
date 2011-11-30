@@ -1,0 +1,31 @@
+-
+
+TYPO3:
+  FLOW3:
+    security:
+      authentication:
+        providers:
+          ActiveDirectory:
+            providerClass: TYPO3\LDAP\Security\Authentication\Provider\LDAPProvider
+            options:
+
+              host: localhost
+              port: 389
+              baseDn: dc=my-domain,dc=com
+
+              # All PHP LDAP options can be set here. Make the constant lowercase
+              # and remove the ldap_opt_ prefix.
+              # Example: LDAP_OPT_PROTOCOL_VERSION becomes protocol_version
+              ldapOptions:
+                protocol_version: 3
+                referrals: 0
+
+              # ? will be replaced with the username provided
+              filter:
+                account: '(samaccountname=?)'
+
+                # this will use the filter with domain, set it to yes to remove it for search
+                ignoreDomain: FALSE
+
+              # will be prefixed to a given username if no other domain was specified
+              domain: 'MY-DOMAIN'

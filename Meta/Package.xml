@@ -3,10 +3,10 @@
 	<key>LDAP</key>
 	<title>LDAP Authentication</title>
 	<description>LDAP Authentication for FLOW3</description>
-	<version>0.0.1-dev</version>
+	<version>0.0.2</version>
 	<state>Development</state>
 	<categories>
-		<category>Testing</category>
+		<category>Authentication</category>
 	</categories>
 	<parties>
 		<person role="LeadDeveloper">
@@ -23,10 +23,20 @@
 			<organisation>Drecomm Internet Intelligence</organisation>
 			<repositoryUserName></repositoryUserName>
 		</person>
+		<person>
+			<name>Julian Wachholz</name>
+			<email>me@julianwachholz.ch</email>
+			<website>http://julianwachholz.ch</website>
+			<organisation>Unic AG</organisation>
+			<repositoryUserName>jwa_</repositoryUserName>
+		</person>
 	</parties>
 	<constraints>
-		<depends/>
-		<conflicts/>
-		<suggests/>
+		<depends>
+			<package minVersion="1.0.0" maxVersion="1.9.9">FLOW3</package>
+			<system type="PHPExtension">ldap</system>
+		</depends>
+		<conflicts />
+		<suggests />
 	</constraints>
 </package>

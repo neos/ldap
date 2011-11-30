@@ -1,5 +1,5 @@
 <?php
-namespace TYPO3\LDAP;
+namespace TYPO3\LDAP\Utility;
 
 /*                                                                        *
  * This script belongs to the FLOW3 package "TYPO3.LDAP".                 *
@@ -21,16 +21,35 @@ namespace TYPO3\LDAP;
  * The TYPO3 project - inspiring people to share!                         *
  *                                                                        */
 
-use TYPO3\FLOW3\Package\Package as BasePackage;
 use TYPO3\FLOW3\Annotations as FLOW3;
 
 /**
- * The LDAP Package
+ * A utility for server status related checks
  *
- * @FLOW3\Scope("singleton")
+ * @FLOW3\Scope("prototype")
  */
-class Package extends BasePackage {
+class ServerStatusUtility {
 
+	/**
+	 * Check if the server is online / can be reached
+	 * TODO: make a fancy version of this method
+	 *
+	 * @return boolean
+	 */
+	public static function isServerOnline($host, $port) {
+		try {
+			fsockopen(
+				$host,
+				$port,
+				$errorNumber,
+				$errorString,
+				5
+			);
+			return TRUE;
+		} catch (\Exception $exception) {
+			return FALSE;
+		}
+	}
 }
 
 ?>

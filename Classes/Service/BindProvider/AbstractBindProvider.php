@@ -1,5 +1,5 @@
 <?php
-namespace TYPO3\LDAP;
+namespace TYPO3\LDAP\Service\BindProvider;
 
 /*                                                                        *
  * This script belongs to the FLOW3 package "TYPO3.LDAP".                 *
@@ -21,15 +21,50 @@ namespace TYPO3\LDAP;
  * The TYPO3 project - inspiring people to share!                         *
  *                                                                        */
 
-use TYPO3\FLOW3\Package\Package as BasePackage;
 use TYPO3\FLOW3\Annotations as FLOW3;
 
 /**
- * The LDAP Package
+ * Bind to an OpenLDAP Server
  *
- * @FLOW3\Scope("singleton")
+ * @FLOW3\Scope("prototype")
  */
-class Package extends BasePackage {
+abstract class AbstractBindProvider implements \TYPO3\LDAP\Service\BindProvider\BindProviderInterface {
+	/**
+	 * @var resource
+	 */
+	protected $linkIdentifier;
+
+	/**
+	 * @var array
+	 */
+	protected $options;
+
+	/**
+	 * @param resource $linkIdentifier
+	 * @param array $options
+	 */
+	public function __construct($linkIdentifier, array $options) {
+		$this->linkIdentifier = $linkIdentifier;
+		$this->options = $options;
+	}
+
+	/**
+	 * @return resource
+	 */
+	public function getLinkIdentifier() {
+		return $this->linkIdentifier;
+	}
+
+	/**
+	 * Return the filtered username for directory search
+	 * overwrite for special needs
+	 *
+	 * @param string $username
+	 * @return string
+	 */
+	public function getFilteredUsername($username) {
+		return $username;
+	}
 
 }
 
