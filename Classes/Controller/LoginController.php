@@ -27,7 +27,7 @@ use TYPO3\FLOW3\Annotations as FLOW3;
  * An example login controller with a login -> status -> logout workflow
  * @FLOW3\Scope("singleton")
  */
-class LoginController extends \TYPO3\FLOW3\MVC\Controller\ActionController {
+class LoginController extends \TYPO3\FLOW3\Mvc\Controller\ActionController {
 
 	/**
 	 * @var \TYPO3\FLOW3\Security\Authentication\AuthenticationManagerInterface
