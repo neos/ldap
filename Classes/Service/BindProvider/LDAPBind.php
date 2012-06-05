@@ -62,11 +62,9 @@ class LDAPBind extends AbstractBindProvider {
 	public function bind($username, $password) {
 		try {
 			$anonymousBind = FALSE;
-			if (!empty($this->options['bind']['anonymous'])) {
-				if ($this->options['bind']['anonymous'] === TRUE) {
-					ldap_bind($this->linkIdentifier);
-					$anonymousBind = TRUE;
-				}
+			if (isset($this->options['bind']['anonymous']) && $this->options['bind']['anonymous'] === TRUE) {
+				ldap_bind($this->linkIdentifier);
+				$anonymousBind = TRUE;
 			}
 
 			if (!$anonymousBind) {

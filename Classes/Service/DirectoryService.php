@@ -67,9 +67,9 @@ class DirectoryService {
 	 * @throws \TYPO3\FLOW3\Error\Exception
 	 */
 	public function ldapConnect() {
-		$bindProviderClassName = 'TYPO3\LDAP\Service\BindProvider\\' . $this->name . 'Bind';
+		$bindProviderClassName = 'TYPO3\LDAP\Service\BindProvider\\' . $this->options['type'] . 'Bind';
 		if (!class_exists($bindProviderClassName)) {
-			throw new \TYPO3\FLOW3\Error\Exception('An bind provider for the service "' . $this->name . '" could not be resolved. Make sure it is a valid bind provider name!', 1327756744);
+			throw new \TYPO3\FLOW3\Error\Exception('An bind provider for the service "' . $this->options['type'] . '" could not be resolved. Make sure it is a valid bind provider name!', 1327756744);
 		}
 
 		try {
