@@ -3,9 +3,9 @@ TYPO3:
     security:
       authentication:
         providers:
-          LDAP:
-            providerClass: TYPO3\LDAP\Security\Authentication\Provider\LDAPProvider
-            options:
+          LdapProvider:
+            provider: TYPO3\LDAP\Security\Authentication\Provider\LDAPProvider
+            providerOptions:
               type: 'LDAP'
               host: localhost
               port: 389
