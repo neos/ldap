@@ -2,7 +2,7 @@
 namespace TYPO3\LDAP\Controller;
 
 /*                                                                        *
- * This script belongs to the FLOW3 package "TYPO3.LDAP".                 *
+ * This script belongs to the Flow package "TYPO3.LDAP".                  *
  *                                                                        *
  * It is free software; you can redistribute it and/or modify it under    *
  * the terms of the GNU Lesser General Public License as published by the *
@@ -21,29 +21,29 @@ namespace TYPO3\LDAP\Controller;
  * The TYPO3 project - inspiring people to share!                         *
  *                                                                        */
 
-use TYPO3\FLOW3\Annotations as FLOW3;
+use TYPO3\Flow\Annotations as Flow;
 
 /**
  * An example login controller with a login -> status -> logout workflow
- * @FLOW3\Scope("singleton")
+ * @Flow\Scope("singleton")
  */
-class LoginController extends \TYPO3\FLOW3\Mvc\Controller\ActionController {
+class LoginController extends \TYPO3\Flow\Mvc\Controller\ActionController {
 
 	/**
-	 * @var \TYPO3\FLOW3\Security\Authentication\AuthenticationManagerInterface
-	 * @FLOW3\Inject
+	 * @var \TYPO3\Flow\Security\Authentication\AuthenticationManagerInterface
+	 * @Flow\Inject
 	 */
 	protected $authenticationManager;
 
 	/**
-	 * @var \TYPO3\FLOW3\Security\Context
-	 * @FLOW3\Inject
+	 * @var \TYPO3\Flow\Security\Context
+	 * @Flow\Inject
 	 */
 	protected $securityContext;
 
 	/**
-	 * @var \TYPO3\FLOW3\Security\AccountRepository
-	 * @FLOW3\Inject
+	 * @var \TYPO3\Flow\Security\AccountRepository
+	 * @Flow\Inject
 	 */
 	protected $accountRepository;
 

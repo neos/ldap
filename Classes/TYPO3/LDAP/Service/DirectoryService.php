@@ -2,7 +2,7 @@
 namespace TYPO3\LDAP\Service;
 
 /*                                                                        *
- * This script belongs to the FLOW3 package "TYPO3.LDAP".                 *
+ * This script belongs to the Flow package "TYPO3.LDAP".                  *
  *                                                                        *
  * It is free software; you can redistribute it and/or modify it under    *
  * the terms of the GNU Lesser General Public License as published by the *
@@ -21,11 +21,11 @@ namespace TYPO3\LDAP\Service;
  * The TYPO3 project - inspiring people to share!                         *
  *                                                                        */
 
-use TYPO3\FLOW3\Annotations as FLOW3;
+use TYPO3\Flow\Annotations as Flow;
 
 /**
  * A simple LDAP authentication service
- * @FLOW3\Scope("prototype")
+ * @Flow\Scope("prototype")
  */
 class DirectoryService {
 
@@ -54,7 +54,7 @@ class DirectoryService {
 		$this->options = $options;
 
 		if (!extension_loaded('ldap')) {
-			throw new \TYPO3\FLOW3\Error\Exception('PHP is not compiled with LDAP support', 1305406047);
+			throw new \TYPO3\Flow\Error\Exception('PHP is not compiled with LDAP support', 1305406047);
 		}
 	}
 
@@ -64,12 +64,12 @@ class DirectoryService {
 	 * Connect to the server and set communication options. Further bindings will be done
 	 * by a server specific bind provider.
 	 *
-	 * @throws \TYPO3\FLOW3\Error\Exception
+	 * @throws \TYPO3\Flow\Error\Exception
 	 */
 	public function ldapConnect() {
 		$bindProviderClassName = 'TYPO3\LDAP\Service\BindProvider\\' . $this->options['type'] . 'Bind';
 		if (!class_exists($bindProviderClassName)) {
-			throw new \TYPO3\FLOW3\Error\Exception('An bind provider for the service "' . $this->options['type'] . '" could not be resolved. Make sure it is a valid bind provider name!', 1327756744);
+			throw new \TYPO3\Flow\Error\Exception('An bind provider for the service "' . $this->options['type'] . '" could not be resolved. Make sure it is a valid bind provider name!', 1327756744);
 		}
 
 		try {
@@ -77,7 +77,7 @@ class DirectoryService {
 			$this->bindProvider = new $bindProviderClassName($connection, $this->options);
 			$this->setLdapOptions();
 		} catch (\Exception $exception) {
-			throw new \TYPO3\FLOW3\Error\Exception('Could not connect to LDAP server', 1326985286);
+			throw new \TYPO3\Flow\Error\Exception('Could not connect to LDAP server', 1326985286);
 		}
 	}
 
@@ -109,7 +109,7 @@ class DirectoryService {
 	 * @param string $username
 	 * @param string $password
 	 * @return array Search result from LDAP
-	 * @throws \TYPO3\FLOW3\Error\Exception
+	 * @throws \TYPO3\Flow\Error\Exception
 	 */
 	public function authenticate($username, $password) {
 		try {
@@ -124,7 +124,7 @@ class DirectoryService {
 			}
 			return $entries[0];
 		} catch (\Exception $exception) {
-			throw new \TYPO3\FLOW3\Error\Exception('Error during LDAP server authentication: ' . $exception->getMessage(), 1323167213);
+			throw new \TYPO3\Flow\Error\Exception('Error during LDAP server authentication: ' . $exception->getMessage(), 1323167213);
 		}
 	}
 

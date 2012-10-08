@@ -2,7 +2,7 @@
 namespace TYPO3\LDAP\Service\BindProvider;
 
 /*                                                                        *
- * This script belongs to the FLOW3 package "TYPO3.LDAP".                 *
+ * This script belongs to the Flow package "TYPO3.LDAP".                  *
  *                                                                        *
  * It is free software; you can redistribute it and/or modify it under    *
  * the terms of the GNU Lesser General Public License as published by the *
@@ -21,12 +21,12 @@ namespace TYPO3\LDAP\Service\BindProvider;
  * The TYPO3 project - inspiring people to share!                         *
  *                                                                        */
 
-use TYPO3\FLOW3\Annotations as FLOW3;
+use TYPO3\Flow\Annotations as Flow;
 
 /**
  * Bind to an OpenLDAP Server
  *
- * @FLOW3\Scope("prototype")
+ * @Flow\Scope("prototype")
  */
 class LDAPBind extends AbstractBindProvider {
 
@@ -57,7 +57,7 @@ class LDAPBind extends AbstractBindProvider {
 	 *
 	 * @param string $username
 	 * @param string $password
-	 * @throws \TYPO3\FLOW3\Error\Exception
+	 * @throws \TYPO3\Flow\Error\Exception
 	 */
 	public function bind($username, $password) {
 		try {
@@ -75,7 +75,7 @@ class LDAPBind extends AbstractBindProvider {
 				}
 			}
 		} catch (\Exception $exception) {
-			throw new \TYPO3\FLOW3\Error\Exception('Could not bind to LDAP server', 1327748989);
+			throw new \TYPO3\Flow\Error\Exception('Could not bind to LDAP server', 1327748989);
 		}
 	}
 
@@ -84,13 +84,13 @@ class LDAPBind extends AbstractBindProvider {
 	 *
 	 * @param string $username
 	 * @param string $password
-	 * @throws \TYPO3\FLOW3\Error\Exception
+	 * @throws \TYPO3\Flow\Error\Exception
 	 */
 	public function verifyCredentials($username, $password) {
 		try {
 			ldap_bind($this->linkIdentifier, $username, $password);
 		} catch (\Exception $exception) {
-			throw new \TYPO3\FLOW3\Error\Exception('Could not verify credentials for dn: "' . $username . '"', 1327749076);
+			throw new \TYPO3\Flow\Error\Exception('Could not verify credentials for dn: "' . $username . '"', 1327749076);
 		}
 	}
 
