@@ -1,1 +1,14 @@
-{"name":"typo3\/ldap","type":"flow3-library","description":"LDAP Authentication for FLOW3","version":"0.0.2","require":{"typo3\/flow3":"*"},"autoload":{"psr-0":{"TYPO3\\LDAP":"Classes"}}}
+{
+	"name":"typo3\/ldap",
+	"type":"flow3-package",
+	"description":"LDAP Authentication for FLOW3",
+	"version":"0.0.2",
+	"require":{
+		"typo3\/flow":"*"
+	},
+	"autoload":{
+		"psr-0":{
+			"TYPO3\\LDAP":"Classes"
+		}
+	}
+}
