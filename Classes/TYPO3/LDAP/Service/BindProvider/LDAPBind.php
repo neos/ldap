@@ -63,16 +63,20 @@ class LDAPBind extends AbstractBindProvider {
 		try {
 			$anonymousBind = FALSE;
 			if (isset($this->options['bind']['anonymous']) && $this->options['bind']['anonymous'] === TRUE) {
-				ldap_bind($this->linkIdentifier);
+				$ldapBindResult = ldap_bind($this->linkIdentifier);
 				$anonymousBind = TRUE;
 			}
 
 			if (!$anonymousBind) {
 				if (empty($this->options['bind']['password'])) {
-					ldap_bind($this->linkIdentifier, str_replace('?', $username, $this->options['bind']['dn']), $password);
+					$ldapBindResult = ldap_bind($this->linkIdentifier, str_replace('?', $username, $this->options['bind']['dn']), $password);
 				} else {
-					ldap_bind($this->linkIdentifier, $this->options['bind']['dn'], $this->options['bind']['password']);
+					$ldapBindResult = ldap_bind($this->linkIdentifier, $this->options['bind']['dn'], $this->options['bind']['password']);
 				}
+			}
+
+			if ($ldapBindResult === FALSE) {
+				throw new \TYPO3\Flow\Error\Exception('Could not bind to LDAP server', 1327748989);
 			}
 		} catch (\Exception $exception) {
 			throw new \TYPO3\Flow\Error\Exception('Could not bind to LDAP server', 1327748989);
@@ -88,7 +92,10 @@ class LDAPBind extends AbstractBindProvider {
 	 */
 	public function verifyCredentials($username, $password) {
 		try {
-			ldap_bind($this->linkIdentifier, $username, $password);
+			$ldapBindResult = ldap_bind($this->linkIdentifier, $username, $password);
+			if ($ldapBindResult === FALSE) {
+				throw new \TYPO3\Flow\Error\Exception('Could not verify credentials for dn: "' . $username . '"', 1327749076);
+			}
 		} catch (\Exception $exception) {
 			throw new \TYPO3\Flow\Error\Exception('Could not verify credentials for dn: "' . $username . '"', 1327749076);
 		}
