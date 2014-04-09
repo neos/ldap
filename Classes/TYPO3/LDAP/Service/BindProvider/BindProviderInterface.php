@@ -57,4 +57,3 @@ interface BindProviderInterface {
 	public function getFilteredUsername($username);
 }
 
-?>

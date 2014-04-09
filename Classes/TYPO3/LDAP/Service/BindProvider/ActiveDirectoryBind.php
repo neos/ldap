@@ -48,7 +48,7 @@ class ActiveDirectoryBind extends AbstractBindProvider {
 			}
 			ldap_bind($this->linkIdentifier, $username, $password);
 		} catch (\Exception $exception) {
-			throw new \TYPO3\Flow\Error\Exception('Could not bind to ActiveDirectory server', 1327937215);
+			throw new \TYPO3\Flow\Error\Exception('Could not bind to ActiveDirectory server. Error was: ' . $exception->getMessage(), 1327937215);
 		}
 	}
 
