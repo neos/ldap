@@ -11,6 +11,11 @@ TYPO3:
               port: 389
               baseDn: dc=my-domain,dc=com
 
+              group:
+                membershipFilter: '(&(member=%s)(objectClass=group))'
+                dn: 'dn'
+                cn: 'cn'
+
               # All PHP LDAP options can be set here. Make the constant lowercase
               # and remove the ldap_opt_ prefix.
               # Example: LDAP_OPT_PROTOCOL_VERSION becomes protocol_version
