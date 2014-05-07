@@ -22,8 +22,8 @@ namespace TYPO3\LDAP\Security\Authentication\Provider;
  *                                                                        */
 
 use TYPO3\Flow\Annotations as Flow;
-
 use TYPO3\Flow\Security\Authentication\TokenInterface;
+use TYPO3\Flow\Security\Exception\UnsupportedAuthenticationTokenException;
 
 /**
  * LDAP Authentication provider
@@ -54,12 +54,13 @@ class LDAPProvider extends \TYPO3\Flow\Security\Authentication\Provider\Persiste
 	 * tries to authenticate against cached credentials in the database that were
 	 * cached on the last successful login for the user to authenticate.
 	 *
-	 * @param TYPO3\Flow\Security\Authentication\TokenInterface $authenticationToken The token to be authenticated
+	 * @param TokenInterface $authenticationToken The token to be authenticated
+	 * @throws UnsupportedAuthenticationTokenException
 	 * @return void
 	 */
 	public function authenticate(TokenInterface $authenticationToken) {
 		if (!($authenticationToken instanceof \TYPO3\Flow\Security\Authentication\Token\UsernamePassword)) {
-			throw new \TYPO3\Flow\Security\Exception\UnsupportedAuthenticationTokenException('This provider cannot authenticate the given token.', 1217339840);
+			throw new UnsupportedAuthenticationTokenException('This provider cannot authenticate the given token.', 1217339840);
 		}
 
 		$account = NULL;
@@ -69,16 +70,17 @@ class LDAPProvider extends \TYPO3\Flow\Security\Authentication\Provider\Persiste
 			if ($this->directoryService->isServerOnline()) {
 				try {
 					$ldapUser = $this->directoryService->authenticate($credentials['username'], $credentials['password']);
-
 					if ($ldapUser) {
 						$account = $this->accountRepository->findActiveByAccountIdentifierAndAuthenticationProviderName($credentials['username'], $this->name);
 						if (empty($account)) {
 							$account = new \TYPO3\Flow\Security\Account();
 							$account->setAccountIdentifier($credentials['username']);
 							$account->setAuthenticationProviderName($this->name);
-							$this->accountRepository->add($account);
 
 							$this->createParty($account, $ldapUser);
+							$this->setRoles($account, $ldapUser);
+
+							$this->accountRepository->add($account);
 						}
 
 						if ($account instanceof \TYPO3\Flow\Security\Account) {
@@ -86,6 +88,11 @@ class LDAPProvider extends \TYPO3\Flow\Security\Authentication\Provider\Persiste
 							$account->setCredentialsSource($this->hashService->generateHmac($credentials['password']));
 							$authenticationToken->setAuthenticationStatus(TokenInterface::AUTHENTICATION_SUCCESSFUL);
 							$authenticationToken->setAccount($account);
+
+							$this->updateParty($account, $ldapUser);
+							$this->setRoles($account, $ldapUser);
+							$this->accountRepository->update($account);
+
 						} elseif ($authenticationToken->getAuthenticationStatus() !== TokenInterface::AUTHENTICATION_SUCCESSFUL) {
 							$authenticationToken->setAuthenticationStatus(TokenInterface::NO_CREDENTIALS_GIVEN);
 						}
@@ -126,6 +133,26 @@ class LDAPProvider extends \TYPO3\Flow\Security\Authentication\Provider\Persiste
 	protected function createParty(\TYPO3\Flow\Security\Account $account, array $ldapSearchResult) {
 	}
 
-}
+	/**
+	 * Update the party for a user on subsequent logins
+	 * Extend this Provider class and implement this method to update the party
+	 *
+	 * @param \TYPO3\Flow\Security\Account $account The account with the party
+	 * @param array $ldapSearchResult
+	 * @return void
+	 */
+	protected function updateParty(\TYPO3\Flow\Security\Account $account, array $ldapSearchResult) {
+	}
 
-?>
+	/**
+	 * Sets the roles for the LDAP account.
+	 * Extend this Provider class and implement this method to update the party
+	 *
+	 * @param \TYPO3\Flow\Security\Account $account
+	 * @param array $ldapSearchResult
+	 * @return void
+	 */
+	protected function setRoles(\TYPO3\Flow\Security\Account $account, array $ldapSearchResult) {
+	}
+
+}

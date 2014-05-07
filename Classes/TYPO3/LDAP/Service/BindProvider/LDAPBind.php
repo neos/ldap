@@ -79,7 +79,7 @@ class LDAPBind extends AbstractBindProvider {
 				throw new \TYPO3\Flow\Error\Exception('Could not bind to LDAP server', 1327748989);
 			}
 		} catch (\Exception $exception) {
-			throw new \TYPO3\Flow\Error\Exception('Could not bind to LDAP server', 1327748989);
+			throw new \TYPO3\Flow\Error\Exception('Could not bind to LDAP server. Error was: ' . $exception->getMessage(), 1327748989);
 		}
 	}
 
@@ -103,4 +103,3 @@ class LDAPBind extends AbstractBindProvider {
 
 }
 
-?>

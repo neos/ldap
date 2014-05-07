@@ -68,4 +68,3 @@ abstract class AbstractBindProvider implements \TYPO3\LDAP\Service\BindProvider\
 
 }
 
-?>
