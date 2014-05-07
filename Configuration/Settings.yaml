@@ -1,0 +1,4 @@
+TYPO3:
+  LDAP:
+    # Allow login based on cached credentials if the directory service is offline
+    allowStandinAuthentication: FALSE

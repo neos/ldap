@@ -38,6 +38,18 @@ class LDAPProvider extends \TYPO3\Flow\Security\Authentication\Provider\Persiste
 	protected $directoryService;
 
 	/**
+	 * @var \TYPO3\Flow\Log\SecurityLoggerInterface
+	 * @Flow\Inject
+	 */
+	protected $logger;
+
+	/**
+	 * @var boolean
+	 * @Flow\Inject(setting="allowStandinAuthentication", package="TYPO3.LDAP")
+	 */
+	protected $allowStandinAuthentication = FALSE;
+
+	/**
 	 * Constructor
 	 *
 	 * @param string $name The name of this authentication provider
@@ -84,8 +96,10 @@ class LDAPProvider extends \TYPO3\Flow\Security\Authentication\Provider\Persiste
 						}
 
 						if ($account instanceof \TYPO3\Flow\Security\Account) {
-							// Cache the password to have cached login if LDAP is unavailable
-							$account->setCredentialsSource($this->hashService->generateHmac($credentials['password']));
+							if ($this->allowStandinAuthentication === TRUE) {
+								// Cache the password to have cached login if LDAP is unavailable
+								$account->setCredentialsSource($this->hashService->generateHmac($credentials['password']));
+							}
 							$authenticationToken->setAuthenticationStatus(TokenInterface::AUTHENTICATION_SUCCESSFUL);
 							$authenticationToken->setAccount($account);
 
@@ -101,11 +115,12 @@ class LDAPProvider extends \TYPO3\Flow\Security\Authentication\Provider\Persiste
 					}
 
 				} catch (\Exception $exception) {
+					$this->logger->log('Authentication failed: ' . $exception->getMessage(), LOG_ALERT);
 				}
-			} else {
+			} elseif ($this->allowStandinAuthentication === TRUE) {
 				$account = $this->accountRepository->findActiveByAccountIdentifierAndAuthenticationProviderName($credentials['username'], $this->name);
 
-					// Server not available, fallback to the cached password hash
+				// Server not available, fallback to the cached password hash
 				if ($account instanceof \TYPO3\Flow\Security\Account) {
 					if ($this->hashService->validateHmac($credentials['password'], $account->getCredentialsSource())) {
 						$authenticationToken->setAuthenticationStatus(TokenInterface::AUTHENTICATION_SUCCESSFUL);
@@ -116,6 +131,9 @@ class LDAPProvider extends \TYPO3\Flow\Security\Authentication\Provider\Persiste
 				} elseif ($authenticationToken->getAuthenticationStatus() !== TokenInterface::AUTHENTICATION_SUCCESSFUL) {
 					$authenticationToken->setAuthenticationStatus(TokenInterface::NO_CREDENTIALS_GIVEN);
 				}
+			} else {
+				$this->logger->log('Authentication failed: directory server offline and standin authentication is disabled', LOG_ALERT);
+				$authenticationToken->setAuthenticationStatus(TokenInterface::WRONG_CREDENTIALS);
 			}
 		} else {
 			$authenticationToken->setAuthenticationStatus(TokenInterface::NO_CREDENTIALS_GIVEN);
