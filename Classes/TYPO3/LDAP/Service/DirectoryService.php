@@ -22,6 +22,7 @@ namespace TYPO3\LDAP\Service;
  *                                                                        */
 
 use TYPO3\Flow\Annotations as Flow;
+use TYPO3\Flow\Utility\Arrays;
 
 /**
  * A simple LDAP authentication service
@@ -152,6 +153,38 @@ class DirectoryService {
 				return $entries;
 			}
 		}
+	}
+
+	/**
+	 * @param string $username
+	 * @return array
+	 */
+	public function getGroupMembership($username) {
+		$groups = array();
+		$groupFilterOptions = Arrays::arrayMergeRecursiveOverrule(
+			array('dn' => 'dn', 'cn' => 'cn'),
+			isset($this->options['group']) && is_array($this->options['group']) ? $this->options['group'] : array()
+		);
+
+		if (!isset($groupFilterOptions['membershipFilter'])) {
+			return $groups;
+		}
+
+		$searchResult = ldap_search(
+			$this->bindProvider->getLinkIdentifier(),
+			$this->options['baseDn'],
+			sprintf($groupFilterOptions['membershipFilter'], $this->bindProvider->getFilteredUsername($username))
+		);
+
+		if ($searchResult) {
+			foreach(ldap_get_entries($this->bindProvider->getLinkIdentifier(), $searchResult) as $group) {
+				if (is_array($group) && isset($group[$groupFilterOptions['dn']])) {
+					$groups[$group[$groupFilterOptions['dn']]] = $group[$groupFilterOptions['cn']][0];
+				}
+			}
+		}
+
+		return $groups;
 	}
 
 	/**

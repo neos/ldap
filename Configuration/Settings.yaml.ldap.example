@@ -11,6 +11,11 @@ TYPO3:
               port: 389
               baseDn: dc=my-domain,dc=com
 
+              group:
+                membershipFilter: '(&(objectClass=posixGroup)(memberUid=%s))'
+                dn: 'dn'
+                cn: 'cn'
+
               bind:
                 anonymous: TRUE
                 dn:
