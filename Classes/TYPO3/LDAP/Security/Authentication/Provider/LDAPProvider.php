@@ -89,8 +89,8 @@ class LDAPProvider extends \TYPO3\Flow\Security\Authentication\Provider\Persiste
 							$account->setAccountIdentifier($credentials['username']);
 							$account->setAuthenticationProviderName($this->name);
 
-							$this->createParty($account, $ldapUser);
 							$this->setRoles($account, $ldapUser);
+							$this->createParty($account, $ldapUser);
 
 							$this->accountRepository->add($account);
 						}
@@ -103,8 +103,8 @@ class LDAPProvider extends \TYPO3\Flow\Security\Authentication\Provider\Persiste
 							$authenticationToken->setAuthenticationStatus(TokenInterface::AUTHENTICATION_SUCCESSFUL);
 							$authenticationToken->setAccount($account);
 
-							$this->updateParty($account, $ldapUser);
 							$this->setRoles($account, $ldapUser);
+							$this->updateParty($account, $ldapUser);
 							$this->accountRepository->update($account);
 
 						} elseif ($authenticationToken->getAuthenticationStatus() !== TokenInterface::AUTHENTICATION_SUCCESSFUL) {
