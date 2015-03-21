@@ -24,6 +24,7 @@ namespace TYPO3\LDAP\Service;
 use TYPO3\Flow\Annotations as Flow;
 use TYPO3\Flow\Error\Exception;
 use TYPO3\Flow\Utility\Arrays;
+use TYPO3\LDAP\Service\BindProvider\BindProviderInterface;
 use TYPO3\LDAP\Utility\ServerStatusUtility;
 
 /**
@@ -48,8 +49,9 @@ class DirectoryService {
 	protected $bindProvider;
 
 	/**
-	 * @param $name
+	 * @param string $name
 	 * @param array $options
+	 * @throws Exception
 	 */
 	public function __construct($name, array $options) {
 		$this->name = $name;
@@ -69,6 +71,11 @@ class DirectoryService {
 	 * @throws Exception
 	 */
 	public function ldapConnect() {
+		if ($this->bindProvider instanceof BindProviderInterface) {
+			// Already connected
+			return;
+		}
+
 		$bindProviderClassName = 'TYPO3\LDAP\Service\BindProvider\\' . $this->options['type'] . 'Bind';
 		if (!class_exists($bindProviderClassName)) {
 			throw new Exception('An bind provider for the service "' . $this->options['type'] . '" could not be resolved. Make sure it is a valid bind provider name!', 1327756744);
@@ -197,5 +204,23 @@ class DirectoryService {
 		return ServerStatusUtility::isServerOnline($this->options['host'], $this->options['port']);
 	}
 
+	/**
+	 * @return resource
+	 */
+	public function getConnection() {
+		$this->ldapConnect();
+		return $this->bindProvider->getLinkIdentifier();
+	}
+
+	/**
+	 * @param string|null $username
+	 * @param string|null $password
+	 * @return mixed
+	 * @throws Exception
+	 */
+	public function bind($username = NULL, $password = NULL) {
+		$this->ldapConnect();
+		return $this->bindProvider->bind($username, $password);
+	}
 }
 

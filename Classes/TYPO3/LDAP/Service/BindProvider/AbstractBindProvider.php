@@ -29,6 +29,7 @@ use TYPO3\Flow\Annotations as Flow;
  * @Flow\Scope("prototype")
  */
 abstract class AbstractBindProvider implements \TYPO3\LDAP\Service\BindProvider\BindProviderInterface {
+
 	/**
 	 * @var resource
 	 */

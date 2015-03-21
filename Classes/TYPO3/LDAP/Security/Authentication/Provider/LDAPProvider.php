@@ -24,6 +24,7 @@ namespace TYPO3\LDAP\Security\Authentication\Provider;
 use TYPO3\Flow\Annotations as Flow;
 use TYPO3\Flow\Log\SecurityLoggerInterface;
 use TYPO3\Flow\Security\Account;
+use TYPO3\Flow\Security\Authentication\Provider\PersistedUsernamePasswordProvider;
 use TYPO3\Flow\Security\Authentication\Token\UsernamePassword;
 use TYPO3\Flow\Security\Authentication\TokenInterface;
 use TYPO3\Flow\Security\Exception\UnsupportedAuthenticationTokenException;
@@ -34,7 +35,7 @@ use TYPO3\LDAP\Service\DirectoryService;
  *
  * @Flow\Scope("prototype")
  */
-class LDAPProvider extends \TYPO3\Flow\Security\Authentication\Provider\PersistedUsernamePasswordProvider {
+class LDAPProvider extends PersistedUsernamePasswordProvider {
 
 	/**
 	 * @var DirectoryService
