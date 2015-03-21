@@ -22,6 +22,7 @@ namespace TYPO3\LDAP\Service\BindProvider;
  *                                                                        */
 
 use TYPO3\Flow\Annotations as Flow;
+use TYPO3\Flow\Error\Exception;
 
 /**
  * Bind to an OpenLDAP Server
@@ -57,7 +58,7 @@ class LDAPBind extends AbstractBindProvider {
 	 *
 	 * @param string $username
 	 * @param string $password
-	 * @throws \TYPO3\Flow\Error\Exception
+	 * @throws Exception
 	 */
 	public function bind($username, $password) {
 		try {
@@ -75,11 +76,11 @@ class LDAPBind extends AbstractBindProvider {
 				}
 			}
 
-			if ($ldapBindResult === FALSE) {
-				throw new \TYPO3\Flow\Error\Exception('Could not bind to LDAP server', 1327748989);
+			if (!isset($ldapBindResult) || $ldapBindResult === FALSE) {
+				throw new Exception('Could not bind to LDAP server', 1327748989);
 			}
 		} catch (\Exception $exception) {
-			throw new \TYPO3\Flow\Error\Exception('Could not bind to LDAP server. Error was: ' . $exception->getMessage(), 1327748989);
+			throw new Exception('Could not bind to LDAP server. Error was: ' . $exception->getMessage(), 1327748989);
 		}
 	}
 
@@ -88,18 +89,17 @@ class LDAPBind extends AbstractBindProvider {
 	 *
 	 * @param string $username
 	 * @param string $password
-	 * @throws \TYPO3\Flow\Error\Exception
+	 * @throws Exception
 	 */
 	public function verifyCredentials($username, $password) {
 		try {
 			$ldapBindResult = ldap_bind($this->linkIdentifier, $username, $password);
 			if ($ldapBindResult === FALSE) {
-				throw new \TYPO3\Flow\Error\Exception('Could not verify credentials for dn: "' . $username . '"', 1327749076);
+				throw new Exception('Could not verify credentials for dn: "' . $username . '"', 1327749076);
 			}
 		} catch (\Exception $exception) {
-			throw new \TYPO3\Flow\Error\Exception('Could not verify credentials for dn: "' . $username . '"', 1327749076);
+			throw new Exception('Could not verify credentials for dn: "' . $username . '"', 1327749076);
 		}
 	}
 
 }
-

@@ -22,7 +22,9 @@ namespace TYPO3\LDAP\Service;
  *                                                                        */
 
 use TYPO3\Flow\Annotations as Flow;
+use TYPO3\Flow\Error\Exception;
 use TYPO3\Flow\Utility\Arrays;
+use TYPO3\LDAP\Utility\ServerStatusUtility;
 
 /**
  * A simple LDAP authentication service
@@ -48,14 +50,13 @@ class DirectoryService {
 	/**
 	 * @param $name
 	 * @param array $options
-	 * @return void
 	 */
 	public function __construct($name, array $options) {
 		$this->name = $name;
 		$this->options = $options;
 
 		if (!extension_loaded('ldap')) {
-			throw new \TYPO3\Flow\Error\Exception('PHP is not compiled with LDAP support', 1305406047);
+			throw new Exception('PHP is not compiled with LDAP support', 1305406047);
 		}
 	}
 
@@ -65,12 +66,12 @@ class DirectoryService {
 	 * Connect to the server and set communication options. Further bindings will be done
 	 * by a server specific bind provider.
 	 *
-	 * @throws \TYPO3\Flow\Error\Exception
+	 * @throws Exception
 	 */
 	public function ldapConnect() {
 		$bindProviderClassName = 'TYPO3\LDAP\Service\BindProvider\\' . $this->options['type'] . 'Bind';
 		if (!class_exists($bindProviderClassName)) {
-			throw new \TYPO3\Flow\Error\Exception('An bind provider for the service "' . $this->options['type'] . '" could not be resolved. Make sure it is a valid bind provider name!', 1327756744);
+			throw new Exception('An bind provider for the service "' . $this->options['type'] . '" could not be resolved. Make sure it is a valid bind provider name!', 1327756744);
 		}
 
 		try {
@@ -78,7 +79,7 @@ class DirectoryService {
 			$this->bindProvider = new $bindProviderClassName($connection, $this->options);
 			$this->setLdapOptions();
 		} catch (\Exception $exception) {
-			throw new \TYPO3\Flow\Error\Exception('Could not connect to LDAP server', 1326985286);
+			throw new Exception('Could not connect to LDAP server', 1326985286);
 		}
 	}
 
@@ -110,7 +111,7 @@ class DirectoryService {
 	 * @param string $username
 	 * @param string $password
 	 * @return array Search result from LDAP
-	 * @throws \TYPO3\Flow\Error\Exception
+	 * @throws Exception
 	 */
 	public function authenticate($username, $password) {
 		try {
@@ -125,7 +126,7 @@ class DirectoryService {
 			}
 			return $entries[0];
 		} catch (\Exception $exception) {
-			throw new \TYPO3\Flow\Error\Exception('Error during LDAP server authentication: ' . $exception->getMessage(), 1323167213);
+			throw new Exception('Error during LDAP server authentication: ' . $exception->getMessage(), 1323167213);
 		}
 	}
 
@@ -189,12 +190,11 @@ class DirectoryService {
 
 	/**
 	 * Check if the server is online / can be reached
-	 * TODO: make a fancy version of this method
 	 *
 	 * @return boolean
 	 */
 	public function isServerOnline() {
-		return \TYPO3\LDAP\Utility\ServerStatusUtility::isServerOnline($this->options['host'], $this->options['port']);
+		return ServerStatusUtility::isServerOnline($this->options['host'], $this->options['port']);
 	}
 
 }

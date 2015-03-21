@@ -22,6 +22,7 @@ namespace TYPO3\LDAP\Service\BindProvider;
  *                                                                        */
 
 use TYPO3\Flow\Annotations as Flow;
+use TYPO3\Flow\Error\Exception;
 
 /**
  * Bind to an ActiveDirectory Server
@@ -37,7 +38,7 @@ class ActiveDirectoryBind extends AbstractBindProvider {
 	 *
 	 * @param string $username
 	 * @param string $password
-	 * @throws \TYPO3\Flow\Error\Exception
+	 * @throws Exception
 	 */
 	public function bind($username, $password) {
 		try {
@@ -48,20 +49,20 @@ class ActiveDirectoryBind extends AbstractBindProvider {
 			}
 			ldap_bind($this->linkIdentifier, $username, $password);
 		} catch (\Exception $exception) {
-			throw new \TYPO3\Flow\Error\Exception('Could not bind to ActiveDirectory server. Error was: ' . $exception->getMessage(), 1327937215);
+			throw new Exception('Could not bind to ActiveDirectory server. Error was: ' . $exception->getMessage(), 1327937215);
 		}
 	}
 
 	/**
 	 * @param string $username
 	 * @param string $password
-	 * @throws \TYPO3\Flow\Error\Exception
+	 * @throws Exception
 	 */
 	public function verifyCredentials($username, $password) {
 		try {
 			ldap_bind($this->linkIdentifier, $username, $password);
 		} catch (\Exception $exception) {
-			throw new \TYPO3\Flow\Error\Exception('Could not verify credentials for dn: "' . $username . '"', 1327763970);
+			throw new Exception('Could not verify credentials for dn: "' . $username . '"', 1327763970);
 		}
 	}
 
