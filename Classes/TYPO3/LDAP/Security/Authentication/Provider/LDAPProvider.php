@@ -21,13 +21,17 @@ namespace TYPO3\LDAP\Security\Authentication\Provider;
  * The TYPO3 project - inspiring people to share!                         *
  *                                                                        */
 
+use TYPO3\Eel\CompilingEvaluator;
+use TYPO3\Eel\Context;
 use TYPO3\Flow\Annotations as Flow;
 use TYPO3\Flow\Log\SecurityLoggerInterface;
+use TYPO3\Flow\Object\ObjectManagerInterface;
 use TYPO3\Flow\Security\Account;
 use TYPO3\Flow\Security\Authentication\Provider\PersistedUsernamePasswordProvider;
 use TYPO3\Flow\Security\Authentication\Token\UsernamePassword;
 use TYPO3\Flow\Security\Authentication\TokenInterface;
 use TYPO3\Flow\Security\Exception\UnsupportedAuthenticationTokenException;
+use TYPO3\Flow\Security\Policy\PolicyService;
 use TYPO3\LDAP\Service\DirectoryService;
 
 /**
@@ -36,6 +40,42 @@ use TYPO3\LDAP\Service\DirectoryService;
  * @Flow\Scope("prototype")
  */
 class LDAPProvider extends PersistedUsernamePasswordProvider {
+
+	/**
+	 * @Flow\Inject(setting="defaultContext", package="TYPO3.LDAP")
+	 * @var array
+	 */
+	protected $defaultContext;
+
+	/**
+	 * @Flow\Inject(setting="roles", package="TYPO3.LDAP")
+	 * @var array
+	 */
+	protected $rolesConfiguration;
+
+	/**
+	 * @Flow\Inject(setting="party", package="TYPO3.LDAP")
+	 * @var array
+	 */
+	protected $partyConfiguration;
+
+	/**
+	 * @Flow\Inject
+	 * @var CompilingEvaluator
+	 */
+	protected $eelEvaluator;
+
+	/**
+	 * @Flow\Inject
+	 * @var ObjectManagerInterface
+	 */
+	protected $objectManager;
+
+	/**
+	 * @Flow\Inject
+	 * @var PolicyService
+	 */
+	protected $policyService;
 
 	/**
 	 * @var DirectoryService
@@ -151,6 +191,7 @@ class LDAPProvider extends PersistedUsernamePasswordProvider {
 	 * @return void
 	 */
 	protected function createParty(Account $account, array $ldapSearchResult) {
+		$this->emitAccountAuthenticated($account, $ldapSearchResult);
 	}
 
 	/**
@@ -162,6 +203,7 @@ class LDAPProvider extends PersistedUsernamePasswordProvider {
 	 * @return void
 	 */
 	protected function updateParty(Account $account, array $ldapSearchResult) {
+		$this->emitAccountAuthenticated($account, $ldapSearchResult);
 	}
 
 	/**
@@ -173,6 +215,62 @@ class LDAPProvider extends PersistedUsernamePasswordProvider {
 	 * @return void
 	 */
 	protected function setRoles(Account $account, array $ldapSearchResult) {
+		if (is_array($this->rolesConfiguration)) {
+			$contextVariables = array(
+				'ldapUser' => $ldapSearchResult,
+			);
+			if (isset($this->defaultContext) && is_array($this->defaultContext)) {
+				foreach ($this->defaultContext as $contextVariable => $objectName) {
+					$object = $this->objectManager->get($objectName);
+					$contextVariables[$contextVariable] = $object;
+				}
+			}
+			$eelContext = new Context($contextVariables);
+
+			foreach ($this->rolesConfiguration['default'] as $roleIdentifier) {
+				$role = $this->policyService->getRole($roleIdentifier);
+				$account->addRole($role);
+			}
+
+			$dn = $this->eelEvaluator->evaluate($this->partyConfiguration['dn'], $eelContext);
+			foreach ($this->rolesConfiguration['userMapping'] as $roleIdentifier => $userDns) {
+				if (in_array($dn, $userDns)) {
+					$role = $this->policyService->getRole($roleIdentifier);
+					$account->addRole($role);
+				}
+			}
+
+			$username = $this->eelEvaluator->evaluate($this->partyConfiguration['username'], $eelContext);
+			$groupMembership = $this->directoryService->getGroupMembership($username);
+			foreach ($this->rolesConfiguration['groupMapping'] as $roleIdentifier => $remoteRoleIdentifiers) {
+				foreach ($remoteRoleIdentifiers as $remoteRoleIdentifier) {
+					$role = $this->policyService->getRole($roleIdentifier);
+
+					if (isset($groupMembership[$remoteRoleIdentifier])) {
+						$account->addRole($role);
+					}
+				}
+			}
+		}
+		$this->emitRolesSet($account, $ldapSearchResult);
+	}
+
+	/**
+	 * @param Account $account
+	 * @param array $ldapSearchResult
+	 * @return void
+	 * @Flow\Signal
+	 */
+	public function emitAccountAuthenticated(Account $account, array $ldapSearchResult) {
+	}
+
+	/**
+	 * @param Account $account
+	 * @param array $ldapSearchResult
+	 * @return void
+	 * @Flow\Signal
+	 */
+	public function emitRolesSet(Account $account, array $ldapSearchResult) {
 	}
 
 }

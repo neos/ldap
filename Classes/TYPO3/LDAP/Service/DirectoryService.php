@@ -215,12 +215,12 @@ class DirectoryService {
 	/**
 	 * @param string|null $username
 	 * @param string|null $password
-	 * @return mixed
+	 * @return void
 	 * @throws Exception
 	 */
 	public function bind($username = NULL, $password = NULL) {
 		$this->ldapConnect();
-		return $this->bindProvider->bind($username, $password);
+		$this->bindProvider->bind($username, $password);
 	}
 }
 
