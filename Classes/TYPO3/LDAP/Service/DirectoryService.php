@@ -128,8 +128,11 @@ class DirectoryService {
 			if (!empty($entries)) {
 				$this->bindProvider->verifyCredentials($entries[0]['dn'], $password);
 				// get all entries in the second run in the case of anonymous bind
-				// TODO: avoid unnecessary search requests
-				$entries = $this->getUserEntries($username);
+				if ($this->options['bind']['anonymous']) {
+					$entries = $this->getUserEntries($username);
+				} else {
+					$this->bindProvider->bind($username, $password);
+				}
 			}
 			return $entries[0];
 		} catch (\Exception $exception) {
