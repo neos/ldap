@@ -143,9 +143,10 @@ class DirectoryService {
 	 *
 	 * @param $username
 	 * @return array
+	 * @throws Exception
 	 */
 	public function getUserEntries($username) {
-		$searchResult = ldap_search(
+		$searchResult = @ldap_search(
 			$this->bindProvider->getLinkIdentifier(),
 			$this->options['baseDn'],
 			str_replace(
@@ -160,12 +161,15 @@ class DirectoryService {
 			if ($entries['count'] === 1) {
 				return $entries;
 			}
+		}  else {
+			throw new Exception('Error during LDAP user search: ' . ldap_errno($this->bindProvider->getLinkIdentifier()), 1443798372);
 		}
 	}
 
 	/**
 	 * @param string $username
 	 * @return array
+	 * @throws Exception
 	 */
 	public function getGroupMembership($username) {
 		$groups = array();
@@ -178,7 +182,7 @@ class DirectoryService {
 			return $groups;
 		}
 
-		$searchResult = ldap_search(
+		$searchResult = @ldap_search(
 			$this->bindProvider->getLinkIdentifier(),
 			$this->options['baseDn'],
 			sprintf($groupFilterOptions['membershipFilter'], $this->bindProvider->getFilteredUsername($username))
@@ -190,6 +194,8 @@ class DirectoryService {
 					$groups[$group[$groupFilterOptions['dn']]] = $group[$groupFilterOptions['cn']][0];
 				}
 			}
+		} else {
+			throw new Exception('Error during LDAP group search: ' . ldap_errno($this->bindProvider->getLinkIdentifier()), 1443476083);
 		}
 
 		return $groups;
