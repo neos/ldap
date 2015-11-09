@@ -105,7 +105,7 @@ class UtilityCommandController extends CommandController {
 	 * @param string $displayColumns Comma separated list of columns to show, like:  dn,objectclass
 	 * @return void
 	 */
-	public function queryCommand($query, $baseDn = NULL,  $providerName = NULL, $settingsFile = NULL, $displayColumns = 'dn') {
+	public function queryCommand($query, $baseDn = NULL, $providerName = NULL, $settingsFile = NULL, $displayColumns = 'dn') {
 		$directoryService = $this->getDirectoryService($providerName, $settingsFile);
 
 		if ($baseDn === NULL) {
@@ -154,8 +154,8 @@ class UtilityCommandController extends CommandController {
 	 * @throws \TYPO3\Flow\Mvc\Exception\StopActionException
 	 */
 	protected function getOptions($providerName = NULL, $settingsFile = NULL) {
-		if ($providerName !== NULL) {
-			$this->options = Arrays::getValueByPath($this->authenticationProvidersConfiguration, $providerName . '.providerOptions');
+		if ($providerName !== NULL && array_key_exists($providerName, $this->authenticationProvidersConfiguration)) {
+			$this->options = $this->authenticationProvidersConfiguration[$providerName]['providerOptions'];
 			return $this->options;
 		}
 
