@@ -99,7 +99,7 @@ class LDAPProvider extends PersistedUsernamePasswordProvider {
 	 * @param array $options Additional configuration options
 	 */
 	public function __construct($name, array $options) {
-		$this->name = $name;
+		parent::__construct($name, $options);
 		$this->directoryService = new DirectoryService($name, $options);
 	}
 
@@ -126,15 +126,16 @@ class LDAPProvider extends PersistedUsernamePasswordProvider {
 					$ldapUser = $this->directoryService->authenticate($credentials['username'], $credentials['password']);
 					if ($ldapUser) {
 						$account = $this->accountRepository->findActiveByAccountIdentifierAndAuthenticationProviderName($credentials['username'], $this->name);
-						if (empty($account)) {
+						$newlyCreatedAccount = FALSE;
+						if ($account === NULL) {
 							$account = new Account();
 							$account->setAccountIdentifier($credentials['username']);
 							$account->setAuthenticationProviderName($this->name);
 
-							$this->setRoles($account, $ldapUser);
 							$this->createParty($account, $ldapUser);
 
 							$this->accountRepository->add($account);
+							$newlyCreatedAccount = TRUE;
 						}
 
 						if ($account instanceof Account) {
@@ -146,7 +147,11 @@ class LDAPProvider extends PersistedUsernamePasswordProvider {
 							$authenticationToken->setAccount($account);
 
 							$this->setRoles($account, $ldapUser);
-							$this->updateParty($account, $ldapUser);
+							$this->emitRolesSet($account, $ldapUser);
+							if ($newlyCreatedAccount === FALSE) {
+								$this->updateParty($account, $ldapUser);
+							}
+							$this->emitAccountAuthenticated($account, $ldapUser);
 							$this->accountRepository->update($account);
 
 						} elseif ($authenticationToken->getAuthenticationStatus() !== TokenInterface::AUTHENTICATION_SUCCESSFUL) {
@@ -191,7 +196,6 @@ class LDAPProvider extends PersistedUsernamePasswordProvider {
 	 * @return void
 	 */
 	protected function createParty(Account $account, array $ldapSearchResult) {
-		$this->emitAccountAuthenticated($account, $ldapSearchResult);
 	}
 
 	/**
@@ -203,7 +207,6 @@ class LDAPProvider extends PersistedUsernamePasswordProvider {
 	 * @return void
 	 */
 	protected function updateParty(Account $account, array $ldapSearchResult) {
-		$this->emitAccountAuthenticated($account, $ldapSearchResult);
 	}
 
 	/**
@@ -225,34 +228,41 @@ class LDAPProvider extends PersistedUsernamePasswordProvider {
 					$contextVariables[$contextVariable] = $object;
 				}
 			}
-			$eelContext = new Context($contextVariables);
 
 			foreach ($this->rolesConfiguration['default'] as $roleIdentifier) {
 				$role = $this->policyService->getRole($roleIdentifier);
 				$account->addRole($role);
 			}
 
-			$dn = $this->eelEvaluator->evaluate($this->partyConfiguration['dn'], $eelContext);
-			foreach ($this->rolesConfiguration['userMapping'] as $roleIdentifier => $userDns) {
-				if (in_array($dn, $userDns)) {
-					$role = $this->policyService->getRole($roleIdentifier);
-					$account->addRole($role);
-				}
-			}
-
-			$username = $this->eelEvaluator->evaluate($this->partyConfiguration['username'], $eelContext);
-			$groupMembership = $this->directoryService->getGroupMembership($username);
-			foreach ($this->rolesConfiguration['groupMapping'] as $roleIdentifier => $remoteRoleIdentifiers) {
-				foreach ($remoteRoleIdentifiers as $remoteRoleIdentifier) {
-					$role = $this->policyService->getRole($roleIdentifier);
-
-					if (isset($groupMembership[$remoteRoleIdentifier])) {
+			$eelContext = new Context($contextVariables);
+			if (isset($this->partyConfiguration['dn'])) {
+				$dn = $this->eelEvaluator->evaluate($this->partyConfiguration['dn'], $eelContext);
+				foreach ($this->rolesConfiguration['userMapping'] as $roleIdentifier => $userDns) {
+					if (in_array($dn, $userDns)) {
+						$role = $this->policyService->getRole($roleIdentifier);
 						$account->addRole($role);
 					}
 				}
+			} elseif (!empty($this->rolesConfiguration['userMapping'])) {
+				$this->logger->log('User mapping found but no party mapping for dn set', LOG_ALERT);
+			}
+
+			if (isset($this->partyConfiguration['username'])) {
+				$username = $this->eelEvaluator->evaluate($this->partyConfiguration['username'], $eelContext);
+				$groupMembership = $this->directoryService->getGroupMembership($username);
+				foreach ($this->rolesConfiguration['groupMapping'] as $roleIdentifier => $remoteRoleIdentifiers) {
+					foreach ($remoteRoleIdentifiers as $remoteRoleIdentifier) {
+						$role = $this->policyService->getRole($roleIdentifier);
+
+						if (isset($groupMembership[$remoteRoleIdentifier])) {
+							$account->addRole($role);
+						}
+					}
+				}
+			} elseif (!empty($this->rolesConfiguration['groupMapping'])) {
+				$this->logger->log('Group mapping found but no party mapping for username set', LOG_ALERT);
 			}
 		}
-		$this->emitRolesSet($account, $ldapSearchResult);
 	}
 
 	/**
