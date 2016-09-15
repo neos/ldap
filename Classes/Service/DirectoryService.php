@@ -125,7 +125,7 @@ class DirectoryService
 
         $searchResult = @ldap_search(
             $this->bindProvider->getLinkIdentifier(),
-            $this->options['baseDn'],
+            sprintf($this->options['baseDn'], $this->bindProvider->filterUsername($username)),
             sprintf($this->options['filter']['account'], $this->bindProvider->filterUsername($username))
         );
 
@@ -162,7 +162,7 @@ class DirectoryService
     {
         $searchResult = @ldap_search(
             $this->bindProvider->getLinkIdentifier(),
-            $this->options['baseDn'],
+            sprintf($this->options['baseDn'], $this->bindProvider->filterUsername($username)),
             sprintf($this->options['filter']['memberOf'], $dn)
         );
 
