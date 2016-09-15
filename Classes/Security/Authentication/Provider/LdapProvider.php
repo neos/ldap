@@ -94,6 +94,7 @@ class LdapProvider extends PersistedUsernamePasswordProvider
      * cached on the last successful login for the user to authenticate.
      *
      * @param TokenInterface $authenticationToken The token to be authenticated
+     *
      * @throws UnsupportedAuthenticationTokenException
      * @return void
      */
@@ -134,7 +135,6 @@ class LdapProvider extends PersistedUsernamePasswordProvider
                         }
                         $this->emitAccountAuthenticated($account, $ldapUser);
                         $this->accountRepository->update($account);
-
                     } elseif ($authenticationToken->getAuthenticationStatus() !== TokenInterface::AUTHENTICATION_SUCCESSFUL) {
                         $authenticationToken->setAuthenticationStatus(TokenInterface::NO_CREDENTIALS_GIVEN);
                     }
@@ -143,6 +143,7 @@ class LdapProvider extends PersistedUsernamePasswordProvider
                 }
             } catch (\Exception $exception) {
                 $this->logger->log('Authentication failed: ' . $exception->getMessage(), LOG_ALERT);
+                $authenticationToken->setAuthenticationStatus(TokenInterface::WRONG_CREDENTIALS);
             }
         } else {
             $authenticationToken->setAuthenticationStatus(TokenInterface::NO_CREDENTIALS_GIVEN);
@@ -155,21 +156,10 @@ class LdapProvider extends PersistedUsernamePasswordProvider
      *
      * @param Account $account The freshly created account that should be used for this party
      * @param array $ldapSearchResult The first result returned by ldap_search
+     *
      * @return void
      */
     protected function createParty(Account $account, array $ldapSearchResult)
-    {
-    }
-
-    /**
-     * Update the party for a user on subsequent logins
-     * Extend this Provider class and implement this method to update the party
-     *
-     * @param Account $account The account with the party
-     * @param array $ldapSearchResult
-     * @return void
-     */
-    protected function updateParty(Account $account, array $ldapSearchResult)
     {
     }
 
@@ -179,14 +169,15 @@ class LdapProvider extends PersistedUsernamePasswordProvider
      *
      * @param Account $account
      * @param array $ldapSearchResult
+     *
      * @return void
      */
     protected function setRoles(Account $account, array $ldapSearchResult)
     {
         if (is_array($this->rolesConfiguration)) {
-            $contextVariables = array(
+            $contextVariables = [
                 'ldapUser' => $ldapSearchResult,
-            );
+            ];
             if (isset($this->defaultContext) && is_array($this->defaultContext)) {
                 foreach ($this->defaultContext as $contextVariable => $objectName) {
                     $object = $this->objectManager->get($objectName);
@@ -233,20 +224,35 @@ class LdapProvider extends PersistedUsernamePasswordProvider
     /**
      * @param Account $account
      * @param array $ldapSearchResult
+     *
      * @return void
      * @Flow\Signal
      */
-    public function emitAccountAuthenticated(Account $account, array $ldapSearchResult)
+    public function emitRolesSet(Account $account, array $ldapSearchResult)
+    {
+    }
+
+    /**
+     * Update the party for a user on subsequent logins
+     * Extend this Provider class and implement this method to update the party
+     *
+     * @param Account $account The account with the party
+     * @param array $ldapSearchResult
+     *
+     * @return void
+     */
+    protected function updateParty(Account $account, array $ldapSearchResult)
     {
     }
 
     /**
      * @param Account $account
      * @param array $ldapSearchResult
+     *
      * @return void
      * @Flow\Signal
      */
-    public function emitRolesSet(Account $account, array $ldapSearchResult)
+    public function emitAccountAuthenticated(Account $account, array $ldapSearchResult)
     {
     }
 
