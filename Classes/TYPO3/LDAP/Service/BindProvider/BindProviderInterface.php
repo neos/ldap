@@ -24,36 +24,37 @@ namespace TYPO3\LDAP\Service\BindProvider;
 /**
  * Interface for binding.
  */
-interface BindProviderInterface {
+interface BindProviderInterface
+{
 
-	/**
-	 * The link identifier to connect to the LDAP server
-	 *
-	 * @return resource
-	 */
-	public function getLinkIdentifier();
+    /**
+     * The link identifier to connect to the LDAP server
+     *
+     * @return resource
+     */
+    public function getLinkIdentifier();
 
-	/**
-	 * Bind to the server as defined by the settings
-	 *
-	 * @param $username
-	 * @param $password
-	 */
-	public function bind($username, $password);
+    /**
+     * Bind to the server as defined by the settings
+     *
+     * @param $username
+     * @param $password
+     */
+    public function bind($username, $password);
 
-	/**
-	 * Bind by dn and password
-	 *
-	 * @param $dn
-	 * @param $password
-	 */
-	public function verifyCredentials($dn, $password);
+    /**
+     * Bind by dn and password
+     *
+     * @param $dn
+     * @param $password
+     */
+    public function verifyCredentials($dn, $password);
 
-	/**
-	 * Get a filtered username
-	 *
-	 * @param $username
-	 */
-	public function getFilteredUsername($username);
+    /**
+     * Get a filtered username
+     *
+     * @param $username
+     */
+    public function getFilteredUsername($username);
 }
 

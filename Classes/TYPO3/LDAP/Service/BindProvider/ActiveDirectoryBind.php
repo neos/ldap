@@ -29,57 +29,61 @@ use TYPO3\Flow\Error\Exception;
  *
  * @Flow\Scope("prototype")
  */
-class ActiveDirectoryBind extends AbstractBindProvider {
+class ActiveDirectoryBind extends AbstractBindProvider
+{
 
-	/**
-	 * Bind to an ActiveDirectory server
-	 *
-	 * Prefix the username with a domain if configured.
-	 *
-	 * @param string $username
-	 * @param string $password
-	 * @throws Exception
-	 */
-	public function bind($username, $password) {
-		try {
-			if (!empty($this->options['domain'])) {
-				if (!strpos($username, '\\')) {
-					$username = $this->options['domain'] . '\\' . $username;
-				}
-			}
-			ldap_bind($this->linkIdentifier, $username, $password);
-		} catch (\Exception $exception) {
-			throw new Exception('Could not bind to ActiveDirectory server. Error was: ' . $exception->getMessage(), 1327937215);
-		}
-	}
+    /**
+     * Bind to an ActiveDirectory server
+     *
+     * Prefix the username with a domain if configured.
+     *
+     * @param string $username
+     * @param string $password
+     * @throws Exception
+     */
+    public function bind($username, $password)
+    {
+        try {
+            if (!empty($this->options['domain'])) {
+                if (!strpos($username, '\\')) {
+                    $username = $this->options['domain'] . '\\' . $username;
+                }
+            }
+            ldap_bind($this->linkIdentifier, $username, $password);
+        } catch (\Exception $exception) {
+            throw new Exception('Could not bind to ActiveDirectory server. Error was: ' . $exception->getMessage(), 1327937215);
+        }
+    }
 
-	/**
-	 * @param string $username
-	 * @param string $password
-	 * @throws Exception
-	 */
-	public function verifyCredentials($username, $password) {
-		try {
-			ldap_bind($this->linkIdentifier, $username, $password);
-		} catch (\Exception $exception) {
-			throw new Exception('Could not verify credentials for dn: "' . $username . '"', 1327763970);
-		}
-	}
+    /**
+     * @param string $username
+     * @param string $password
+     * @throws Exception
+     */
+    public function verifyCredentials($username, $password)
+    {
+        try {
+            ldap_bind($this->linkIdentifier, $username, $password);
+        } catch (\Exception $exception) {
+            throw new Exception('Could not verify credentials for dn: "' . $username . '"', 1327763970);
+        }
+    }
 
-	/**
-	 * Return username in format used for directory search
-	 *
-	 * @param string $username
-	 * @return string
-	 */
-	public function getFilteredUsername($username) {
-		if (!empty($this->options['domain'])) {
-			$usernameParts = explode('\\', $username);
-			$usernameWithoutDomain = array_pop($usernameParts);
-			return $this->options['filter']['ignoreDomain'] ? $usernameWithoutDomain : addcslashes($username, '\\');
-		}
-		return $username;
-	}
+    /**
+     * Return username in format used for directory search
+     *
+     * @param string $username
+     * @return string
+     */
+    public function getFilteredUsername($username)
+    {
+        if (!empty($this->options['domain'])) {
+            $usernameParts = explode('\\', $username);
+            $usernameWithoutDomain = array_pop($usernameParts);
+            return $this->options['filter']['ignoreDomain'] ? $usernameWithoutDomain : addcslashes($username, '\\');
+        }
+        return $username;
+    }
 
 }
 

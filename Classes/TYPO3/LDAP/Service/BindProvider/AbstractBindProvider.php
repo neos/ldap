@@ -22,49 +22,54 @@ namespace TYPO3\LDAP\Service\BindProvider;
  *                                                                        */
 
 use TYPO3\Flow\Annotations as Flow;
+use TYPO3\LDAP\Service\BindProvider\BindProviderInterface;
 
 /**
  * Bind to an OpenLDAP Server
  *
  * @Flow\Scope("prototype")
  */
-abstract class AbstractBindProvider implements \TYPO3\LDAP\Service\BindProvider\BindProviderInterface {
+abstract class AbstractBindProvider implements BindProviderInterface
+{
 
-	/**
-	 * @var resource
-	 */
-	protected $linkIdentifier;
+    /**
+     * @var resource
+     */
+    protected $linkIdentifier;
 
-	/**
-	 * @var array
-	 */
-	protected $options;
+    /**
+     * @var array
+     */
+    protected $options;
 
-	/**
-	 * @param resource $linkIdentifier
-	 * @param array $options
-	 */
-	public function __construct($linkIdentifier, array $options) {
-		$this->linkIdentifier = $linkIdentifier;
-		$this->options = $options;
-	}
+    /**
+     * @param resource $linkIdentifier
+     * @param array $options
+     */
+    public function __construct($linkIdentifier, array $options)
+    {
+        $this->linkIdentifier = $linkIdentifier;
+        $this->options = $options;
+    }
 
-	/**
-	 * @return resource
-	 */
-	public function getLinkIdentifier() {
-		return $this->linkIdentifier;
-	}
+    /**
+     * @return resource
+     */
+    public function getLinkIdentifier()
+    {
+        return $this->linkIdentifier;
+    }
 
-	/**
-	 * Return the filtered username for directory search
-	 * overwrite for special needs
-	 *
-	 * @param string $username
-	 * @return string
-	 */
-	public function getFilteredUsername($username) {
-		return $username;
-	}
+    /**
+     * Return the filtered username for directory search
+     * overwrite for special needs
+     *
+     * @param string $username
+     * @return string
+     */
+    public function getFilteredUsername($username)
+    {
+        return $username;
+    }
 
 }

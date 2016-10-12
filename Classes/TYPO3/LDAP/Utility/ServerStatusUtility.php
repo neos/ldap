@@ -28,27 +28,30 @@ use TYPO3\Flow\Annotations as Flow;
  *
  * @Flow\Scope("prototype")
  */
-class ServerStatusUtility {
+class ServerStatusUtility
+{
 
-	/**
-	 * Check if the server is online / can be reached
-	 * TODO: make a fancy version of this method
-	 *
-	 * @return boolean
-	 */
-	public static function isServerOnline($host, $port) {
-		try {
-			fsockopen(
-				$host,
-				$port,
-				$errorNumber,
-				$errorString,
-				5
-			);
-			return TRUE;
-		} catch (\Exception $exception) {
-			return FALSE;
-		}
-	}
+    /**
+     * Check if the server is online / can be reached
+     * TODO: make a fancy version of this method
+     *
+     * @return boolean
+     */
+    public static function isServerOnline($host, $port)
+    {
+        try {
+            fsockopen(
+                $host,
+                $port,
+                $errorNumber,
+                $errorString,
+                5
+            );
+            return true;
+        } catch (\Exception $exception) {
+            return false;
+        }
+    }
+
 }
 
