@@ -63,7 +63,14 @@ class LDAPBind extends AbstractBindProvider {
 	public function bind($username, $password) {
 		try {
 			if ($username !== NULL && $password !== NULL) {
-				ldap_bind($this->linkIdentifier, str_replace('?', $username, $this->options['bind']['dn']), $password);
+				// This is a fallback to the original usage of bind.dn, usage of user.dn is preferred
+				if (isset($this->options['user']['dn'])) {
+					$bindDn = str_replace('?', $username, $this->options['user']['dn']);
+				} else {
+					$bindDn = str_replace('?', $username, $this->options['bind']['dn']);
+				}
+
+				ldap_bind($this->linkIdentifier, $bindDn, $password);
 				return;
 			}
 

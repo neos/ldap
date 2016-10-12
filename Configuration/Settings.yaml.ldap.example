@@ -20,6 +20,8 @@ TYPO3:
                 anonymous: TRUE
                 dn:
                 password:
+              user:
+                dn:
 
               # All PHP LDAP options can be set here. Make the constant lowercase
               # and remove the ldap_opt_ prefix.
