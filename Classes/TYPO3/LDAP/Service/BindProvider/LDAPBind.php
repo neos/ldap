@@ -62,23 +62,22 @@ class LDAPBind extends AbstractBindProvider {
 	 */
 	public function bind($username, $password) {
 		try {
-			$anonymousBind = FALSE;
-			if (isset($this->options['bind']['anonymous']) && $this->options['bind']['anonymous'] === TRUE) {
-				$ldapBindResult = ldap_bind($this->linkIdentifier);
-				$anonymousBind = TRUE;
+			if ($username !== NULL && $password !== NULL) {
+				ldap_bind($this->linkIdentifier, str_replace('?', $username, $this->options['bind']['dn']), $password);
+				return;
 			}
 
-			if (!$anonymousBind) {
-				if (empty($this->options['bind']['password'])) {
-					$ldapBindResult = ldap_bind($this->linkIdentifier, str_replace('?', $username, $this->options['bind']['dn']), $password);
-				} else {
-					$ldapBindResult = ldap_bind($this->linkIdentifier, $this->options['bind']['dn'], $this->options['bind']['password']);
-				}
+			if ($username === NULL && $password === NULL && isset($this->options['bind']['anonymous']) && $this->options['bind']['anonymous'] === TRUE) {
+				ldap_bind($this->linkIdentifier);
+				return;
 			}
 
-			if (!isset($ldapBindResult) || $ldapBindResult === FALSE) {
-				throw new Exception('Could not bind to LDAP server', 1327748989);
+			if ($username === NULL && $password === NULL) {
+				ldap_bind($this->linkIdentifier, $this->options['bind']['dn'], $this->options['bind']['password']);
+				return;
 			}
+
+			throw new Exception('Could not bind to LDAP server', 1327748989);
 		} catch (\Exception $exception) {
 			throw new Exception('Could not bind to LDAP server. Error was: ' . $exception->getMessage(), 1327748989);
 		}
