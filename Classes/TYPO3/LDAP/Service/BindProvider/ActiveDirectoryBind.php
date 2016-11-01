@@ -44,15 +44,30 @@ class ActiveDirectoryBind extends AbstractBindProvider
     public function bind($username, $password)
     {
         try {
-            if (!empty($this->options['domain'])) {
-                if (!strpos($username, '\\')) {
-                    $username = $this->options['domain'] . '\\' . $username;
-                }
-            }
-            ldap_bind($this->linkIdentifier, $username, $password);
+            ldap_bind($this->linkIdentifier, $this->getUsername($username), $password);
         } catch (\Exception $exception) {
             throw new Exception('Could not bind to ActiveDirectory server. Error was: ' . $exception->getMessage(), 1327937215);
         }
+    }
+
+    /**
+     * @param string $username
+     * @return string
+     */
+    protected function getUsername($username)
+    {
+        if (!empty($this->options['domain'])) {
+            if (!strpos($username, '\\')) {
+                $username = $this->options['domain'] . '\\' . $username;
+            }
+        }
+        if (!empty($this->options['usernameSuffix'])) {
+            if (!strpos($username, '@')) {
+                $username = $username . '@' . $this->options['usernameSuffix'];
+            }
+        }
+
+        return $username;
     }
 
     /**
@@ -63,7 +78,7 @@ class ActiveDirectoryBind extends AbstractBindProvider
     public function verifyCredentials($username, $password)
     {
         try {
-            ldap_bind($this->linkIdentifier, $username, $password);
+            ldap_bind($this->linkIdentifier, $this->getUsername($username), $password);
         } catch (\Exception $exception) {
             throw new Exception('Could not verify credentials for dn: "' . $username . '"', 1327763970);
         }
