@@ -4,7 +4,8 @@
 	"description": "LDAP Authentication for Flow",
 	"license": ["LGPL-3.0+"],
 	"require":{
-		"typo3/flow": "*"
+		"typo3/flow": "*",
+		"ext-ldap": "*"
 	},
 	"autoload":{
 		"psr-0":{
