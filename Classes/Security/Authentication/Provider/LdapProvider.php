@@ -1,8 +1,8 @@
 <?php
-namespace TYPO3\LDAP\Security\Authentication\Provider;
+namespace Neos\Ldap\Security\Authentication\Provider;
 
 /*
- * This file is part of the TYPO3.LDAP package.
+ * This file is part of the Neos.Ldap package.
  *
  * (c) Contributors of the Neos Project - www.neos.io
  *
@@ -11,41 +11,40 @@ namespace TYPO3\LDAP\Security\Authentication\Provider;
  * source code.
  */
 
-use TYPO3\Eel\CompilingEvaluator;
-use TYPO3\Eel\Context;
-use TYPO3\Flow\Annotations as Flow;
-use TYPO3\Flow\Log\SecurityLoggerInterface;
-use TYPO3\Flow\Object\ObjectManagerInterface;
-use TYPO3\Flow\Security\Account;
-use TYPO3\Flow\Security\Authentication\Provider\PersistedUsernamePasswordProvider;
-use TYPO3\Flow\Security\Authentication\Token\UsernamePassword;
-use TYPO3\Flow\Security\Authentication\TokenInterface;
-use TYPO3\Flow\Security\Exception\UnsupportedAuthenticationTokenException;
-use TYPO3\Flow\Security\Policy\PolicyService;
-use TYPO3\LDAP\Service\DirectoryService;
+use Neos\Eel\CompilingEvaluator;
+use Neos\Eel\Context;
+use Neos\Flow\Annotations as Flow;
+use Neos\Flow\Log\SecurityLoggerInterface;
+use Neos\Flow\ObjectManagement\ObjectManagerInterface;
+use Neos\Flow\Security\Account;
+use Neos\Flow\Security\Authentication\Provider\PersistedUsernamePasswordProvider;
+use Neos\Flow\Security\Authentication\Token\UsernamePassword;
+use Neos\Flow\Security\Authentication\TokenInterface;
+use Neos\Flow\Security\Exception\UnsupportedAuthenticationTokenException;
+use Neos\Flow\Security\Policy\PolicyService;
+use Neos\Ldap\Service\DirectoryService;
 
 /**
- * LDAP Authentication provider
+ * Ldap Authentication provider
  *
  * @Flow\Scope("prototype")
  */
-class LDAPProvider extends PersistedUsernamePasswordProvider
+class LdapProvider extends PersistedUsernamePasswordProvider
 {
-
     /**
-     * @Flow\Inject(setting="defaultContext", package="TYPO3.LDAP")
+     * @Flow\InjectConfiguration(path="defaultContext", package="Neos.Ldap")
      * @var array
      */
     protected $defaultContext;
 
     /**
-     * @Flow\Inject(setting="roles", package="TYPO3.LDAP")
+     * @Flow\InjectConfiguration(path="roles", package="Neos.Ldap")
      * @var array
      */
     protected $rolesConfiguration;
 
     /**
-     * @Flow\Inject(setting="party", package="TYPO3.LDAP")
+     * @Flow\InjectConfiguration(path="party", package="Neos.Ldap")
      * @var array
      */
     protected $partyConfiguration;
@@ -90,7 +89,7 @@ class LDAPProvider extends PersistedUsernamePasswordProvider
     }
 
     /**
-     * Authenticate the current token. If it's not possible to connect to the LDAP server the provider
+     * Authenticate the current token. If it's not possible to connect to the Ldap server the provider
      * tries to authenticate against cached credentials in the database that were
      * cached on the last successful login for the user to authenticate.
      *
@@ -175,7 +174,7 @@ class LDAPProvider extends PersistedUsernamePasswordProvider
     }
 
     /**
-     * Sets the roles for the LDAP account.
+     * Sets the roles for the Ldap account.
      * Extend this Provider class and implement this method to update the party
      *
      * @param Account $account

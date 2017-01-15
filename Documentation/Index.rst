@@ -1,5 +1,5 @@
-TYPO3 LDAP Documentation
-========================
+Neos Ldap Documentation
+=======================
 
 Example LoginController
 -----------------------
@@ -7,10 +7,10 @@ Example LoginController
 LoginController.php::
 
 	<?php
-	namespace My\Pacakage\Controller;
+	namespace My\Package\Controller;
 
-	use TYPO3\Flow\Annotations as Flow;
-	use TYPO3\Flow\Security\Authentication\Controller\AbstractAuthenticationController;
+	use Neos\Flow\Annotations as Flow;
+	use Neos\Flow\Security\Authentication\Controller\AbstractAuthenticationController;
 
 	/**
 	 * @Flow\Scope("singleton")
@@ -28,10 +28,10 @@ LoginController.php::
 		}
 
 		/**
-		 * @param \TYPO3\Flow\Mvc\ActionRequest $originalRequest
+		 * @param \Neos\Flow\Mvc\ActionRequest $originalRequest
 		 * @return string|void
 		 */
-		public function onAuthenticationSuccess(\TYPO3\Flow\Mvc\ActionRequest $originalRequest = NULL) {
+		public function onAuthenticationSuccess(\Neos\Flow\Mvc\ActionRequest $originalRequest = NULL) {
 			$this->redirect('status');
 		}
 
@@ -61,11 +61,11 @@ Index.html::
 		<f:flashMessages class="errorMessages" />
 			<div>
 				<label>User</label>
-				<input type="text" name="__authentication[TYPO3][Flow][Security][Authentication][Token][UsernamePassword][username]" id="username" value="{username}" />
+				<input type="text" name="__authentication[Neos][Flow][Security][Authentication][Token][UsernamePassword][username]" id="username" value="{username}" />
 			</div>
 			<div>
 				<label>Password</label>
-				<input type="password" name="__authentication[TYPO3][Flow][Security][Authentication][Token][UsernamePassword][password]" id="password" />
+				<input type="password" name="__authentication[Neos][Flow][Security][Authentication][Token][UsernamePassword][password]" id="password" />
 			</div>
 			<f:form.submit value="Login" />
 		</div>
@@ -92,5 +92,5 @@ like::
 Configuration examples
 ----------------------
 
-You can find examples of a ``Settings.yaml`` file for LDAP and Active Directory in the Configuration/ folder
-of the TYPO3.LDAP package.
+You can find examples of a ``Settings.yaml`` file for Ldap and Active Directory in the Configuration/ folder
+of the Neos.Ldap package.

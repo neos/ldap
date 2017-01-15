@@ -1,8 +1,8 @@
 <?php
-namespace TYPO3\LDAP\Service\BindProvider;
+namespace Neos\Ldap\Service\BindProvider;
 
 /*
- * This file is part of the TYPO3.LDAP package.
+ * This file is part of the Neos.Ldap package.
  *
  * (c) Contributors of the Neos Project - www.neos.io
  *
@@ -11,11 +11,10 @@ namespace TYPO3\LDAP\Service\BindProvider;
  * source code.
  */
 
-use TYPO3\Flow\Annotations as Flow;
-use TYPO3\LDAP\Service\BindProvider\BindProviderInterface;
+use Neos\Flow\Annotations as Flow;
 
 /**
- * Bind to an OpenLDAP Server
+ * Bind to an OpenLdap Server
  *
  * @Flow\Scope("prototype")
  */

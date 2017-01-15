@@ -1,8 +1,8 @@
 <?php
-namespace TYPO3\LDAP\Service;
+namespace Neos\Ldap\Service;
 
 /*
- * This file is part of the TYPO3.LDAP package.
+ * This file is part of the Neos.Ldap package.
  *
  * (c) Contributors of the Neos Project - www.neos.io
  *
@@ -11,14 +11,14 @@ namespace TYPO3\LDAP\Service;
  * source code.
  */
 
-use TYPO3\Flow\Annotations as Flow;
-use TYPO3\Flow\Error\Exception;
-use TYPO3\Flow\Utility\Arrays;
-use TYPO3\LDAP\Service\BindProvider\BindProviderInterface;
-use TYPO3\LDAP\Utility\ServerStatusUtility;
+use Neos\Flow\Annotations as Flow;
+use Neos\Flow\Error\Exception;
+use Neos\Utility\Arrays;
+use Neos\Ldap\Service\BindProvider\BindProviderInterface;
+use Neos\Ldap\Utility\ServerStatusUtility;
 
 /**
- * A simple LDAP authentication service
+ * A simple Ldap authentication service
  * @Flow\Scope("prototype")
  */
 class DirectoryService
@@ -35,7 +35,7 @@ class DirectoryService
     protected $options;
 
     /**
-     * @var \TYPO3\LDAP\Service\BindProvider\BindProviderInterface
+     * @var \Neos\Ldap\Service\BindProvider\BindProviderInterface
      */
     protected $bindProvider;
 
@@ -50,12 +50,12 @@ class DirectoryService
         $this->options = $options;
 
         if (!extension_loaded('ldap')) {
-            throw new Exception('PHP is not compiled with LDAP support', 1305406047);
+            throw new Exception('PHP is not compiled with Ldap support', 1305406047);
         }
     }
 
     /**
-     * Initialize the LDAP server connection
+     * Initialize the Ldap server connection
      *
      * Connect to the server and set communication options. Further bindings will be done
      * by a server specific bind provider.
@@ -69,7 +69,7 @@ class DirectoryService
             return;
         }
 
-        $bindProviderClassName = 'TYPO3\LDAP\Service\BindProvider\\' . $this->options['type'] . 'Bind';
+        $bindProviderClassName = 'Neos\Ldap\Service\BindProvider\\' . $this->options['type'] . 'Bind';
         if (!class_exists($bindProviderClassName)) {
             throw new Exception('An bind provider for the service "' . $this->options['type'] . '" could not be resolved. Make sure it is a valid bind provider name!', 1327756744);
         }
@@ -79,14 +79,14 @@ class DirectoryService
             $this->bindProvider = new $bindProviderClassName($connection, $this->options);
             $this->setLdapOptions();
         } catch (\Exception $exception) {
-            throw new Exception('Could not connect to LDAP server', 1326985286);
+            throw new Exception('Could not connect to Ldap server', 1326985286);
         }
     }
 
     /**
-     * Set the LDAP options configured in the settings
+     * Set the Ldap options configured in the settings
      *
-     * Loops over the ldapOptions array, and finds the corresponding LDAP option by prefixing
+     * Loops over the ldapOptions array, and finds the corresponding Ldap option by prefixing
      * LDAP_OPT_ to the uppercased array key.
      *
      * Example:
@@ -107,11 +107,11 @@ class DirectoryService
     }
 
     /**
-     * Authenticate a username / password against the LDAP server
+     * Authenticate a username / password against the Ldap server
      *
      * @param string $username
      * @param string $password
-     * @return array Search result from LDAP
+     * @return array Search result from Ldap
      * @throws Exception
      */
     public function authenticate($username, $password)
@@ -132,12 +132,12 @@ class DirectoryService
             }
             return $entries[0];
         } catch (\Exception $exception) {
-            throw new Exception('Error during LDAP server authentication: ' . $exception->getMessage(), 1323167213);
+            throw new Exception('Error during Ldap server authentication: ' . $exception->getMessage(), 1323167213);
         }
     }
 
     /**
-     * Get the user entities from the LDAP server
+     * Get the user entities from the Ldap server
      * At least the dn should be returned.
      *
      * @param $username
@@ -162,7 +162,7 @@ class DirectoryService
                 return $entries;
             }
         } else {
-            throw new Exception('Error during LDAP user search: ' . ldap_errno($this->bindProvider->getLinkIdentifier()), 1443798372);
+            throw new Exception('Error during Ldap user search: ' . ldap_errno($this->bindProvider->getLinkIdentifier()), 1443798372);
         }
     }
 
@@ -196,7 +196,7 @@ class DirectoryService
                 }
             }
         } else {
-            throw new Exception('Error during LDAP group search: ' . ldap_errno($this->bindProvider->getLinkIdentifier()), 1443476083);
+            throw new Exception('Error during Ldap group search: ' . ldap_errno($this->bindProvider->getLinkIdentifier()), 1443476083);
         }
 
         return $groups;

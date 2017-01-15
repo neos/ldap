@@ -1,8 +1,8 @@
 <?php
-namespace TYPO3\LDAP\Service\BindProvider;
+namespace Neos\Ldap\Service\BindProvider;
 
 /*
- * This file is part of the TYPO3.LDAP package.
+ * This file is part of the Neos.Ldap package.
  *
  * (c) Contributors of the Neos Project - www.neos.io
  *
@@ -11,8 +11,8 @@ namespace TYPO3\LDAP\Service\BindProvider;
  * source code.
  */
 
-use TYPO3\Flow\Annotations as Flow;
-use TYPO3\Flow\Error\Exception;
+use Neos\Flow\Annotations as Flow;
+use Neos\Flow\Error\Exception;
 
 /**
  * Bind to an ActiveDirectory Server
@@ -56,7 +56,6 @@ class ActiveDirectoryBind extends AbstractBindProvider
                 $username = $username . '@' . $this->options['usernameSuffix'];
             }
         }
-
         return $username;
     }
 

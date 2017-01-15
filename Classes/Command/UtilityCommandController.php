@@ -1,8 +1,8 @@
 <?php
-namespace TYPO3\LDAP\Command;
+namespace Neos\Ldap\Command;
 
 /*
- * This file is part of the TYPO3.LDAP package.
+ * This file is part of the Neos.Ldap package.
  *
  * (c) Contributors of the Neos Project - www.neos.io
  *
@@ -12,11 +12,11 @@ namespace TYPO3\LDAP\Command;
  */
 
 use Symfony\Component\Yaml\Yaml;
-use TYPO3\Flow\Annotations as Flow;
-use TYPO3\Flow\Cli\CommandController;
-use TYPO3\Flow\Utility\Arrays;
-use TYPO3\Flow\Utility\Files;
-use TYPO3\LDAP\Service\DirectoryService;
+use Neos\Flow\Annotations as Flow;
+use Neos\Flow\Cli\CommandController;
+use Neos\Utility\Arrays;
+use Neos\Utility\Files;
+use Neos\Ldap\Service\DirectoryService;
 
 /**
  * Command controller to test settings and query the directory
@@ -25,7 +25,7 @@ class UtilityCommandController extends CommandController
 {
 
     /**
-     * @Flow\InjectConfiguration(path="security.authentication.providers", package="TYPO3.Flow")
+     * @Flow\InjectConfiguration(path="security.authentication.providers", package="Neos.Flow")
      * @var array
      */
     protected $authenticationProvidersConfiguration;
@@ -132,7 +132,7 @@ class UtilityCommandController extends CommandController
      * @param string $providerName Name of the authentication provider to use
      * @param string $settingsFile Path to a yaml file containing the settings to use for testing purposes
      * @return DirectoryService
-     * @throws \TYPO3\Flow\Mvc\Exception\StopActionException
+     * @throws \Neos\Flow\Mvc\Exception\StopActionException
      */
     protected function getDirectoryService($providerName, $settingsFile)
     {
@@ -151,7 +151,7 @@ class UtilityCommandController extends CommandController
      * @param string $providerName Name of the authentication provider to use
      * @param string $settingsFile Path to a yaml file containing the settings to use for testing purposes
      * @return array|mixed
-     * @throws \TYPO3\Flow\Mvc\Exception\StopActionException
+     * @throws \Neos\Flow\Mvc\Exception\StopActionException
      */
     protected function getOptions($providerName = null, $settingsFile = null)
     {

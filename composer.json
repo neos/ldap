@@ -1,20 +1,25 @@
 {
-	"name": "typo3/ldap",
-	"type": "typo3-flow-package",
-	"description": "LDAP Authentication for Flow",
-	"license": ["MIT"],
-	"require":{
-		"typo3/flow": "*",
-		"ext-ldap": "*"
-	},
-	"autoload":{
-		"psr-0":{
-			"TYPO3\\LDAP": "Classes"
-		}
-	},
-	"extra": {
-		"branch-alias": {
-			"dev-master": "1.0.x-dev"
-		}
-	}
+    "name": "neos/ldap",
+    "type": "neos-package",
+    "description": "Ldap Authentication for Flow",
+    "license": [
+        "MIT"
+    ],
+    "require": {
+        "neos/flow": "^4.0",
+        "ext-ldap": "*"
+    },
+    "replace": {
+        "typo3/ldap": "self.version"
+    },
+    "autoload": {
+        "psr-4": {
+            "Neos\\Ldap\\": "Classes"
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-master": "1.0.x-dev"
+        }
+    }
 }

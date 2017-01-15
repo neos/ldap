@@ -1,8 +1,8 @@
 <?php
-namespace TYPO3\LDAP\Utility;
+namespace Neos\Ldap\Utility;
 
 /*
- * This file is part of the TYPO3.LDAP package.
+ * This file is part of the Neos.Ldap package.
  *
  * (c) Contributors of the Neos Project - www.neos.io
  *
@@ -11,7 +11,7 @@ namespace TYPO3\LDAP\Utility;
  * source code.
  */
 
-use TYPO3\Flow\Annotations as Flow;
+use Neos\Flow\Annotations as Flow;
 
 /**
  * A utility for server status related checks

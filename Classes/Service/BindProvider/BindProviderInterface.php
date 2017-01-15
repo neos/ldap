@@ -1,8 +1,8 @@
 <?php
-namespace TYPO3\LDAP\Service\BindProvider;
+namespace Neos\Ldap\Service\BindProvider;
 
 /*
- * This file is part of the TYPO3.LDAP package.
+ * This file is part of the Neos.Ldap package.
  *
  * (c) Contributors of the Neos Project - www.neos.io
  *
@@ -18,7 +18,7 @@ interface BindProviderInterface
 {
 
     /**
-     * The link identifier to connect to the LDAP server
+     * The link identifier to connect to the Ldap server
      *
      * @return resource
      */
