@@ -1,12 +1,12 @@
-TYPO3:
+Neos:
   Flow:
     security:
       authentication:
         providers:
           ActiveDirectoryProvider:
-            provider: TYPO3\LDAP\Security\Authentication\Provider\LDAPProvider
+            provider: Neos\Ldap\Security\Authentication\Provider\LdapProvider
             providerOptions:
-              type: 'AD'
+              type: 'ActiveDirectory'
               host: localhost
               port: 389
               baseDn: dc=my-domain,dc=com
@@ -32,3 +32,6 @@ TYPO3:
 
               # will be prefixed to a given username if no other domain was specified
               domain: 'MY-DOMAIN'
+
+              # if FALSE, do not ping the server prior to login (ping might be blocked by firewall)
+              checkServerOnline: TRUE

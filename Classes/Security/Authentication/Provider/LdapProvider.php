@@ -1,8 +1,8 @@
 <?php
-namespace TYPO3\LDAP\Security\Authentication\Provider;
+namespace Neos\Ldap\Security\Authentication\Provider;
 
 /*                                                                        *
- * This script belongs to the Flow package "TYPO3.LDAP".                  *
+ * This script belongs to the Flow package "Neos.Ldap".                  *
  *                                                                        *
  * It is free software; you can redistribute it and/or modify it under    *
  * the terms of the GNU Lesser General Public License as published by the *
@@ -18,44 +18,44 @@ namespace TYPO3\LDAP\Security\Authentication\Provider;
  * License along with the script.                                         *
  * If not, see http://www.gnu.org/licenses/lgpl.html                      *
  *                                                                        *
- * The TYPO3 project - inspiring people to share!                         *
+ * The Neos project - inspiring people to share!                         *
  *                                                                        */
 
-use TYPO3\Eel\CompilingEvaluator;
-use TYPO3\Eel\Context;
-use TYPO3\Flow\Annotations as Flow;
-use TYPO3\Flow\Log\SecurityLoggerInterface;
-use TYPO3\Flow\Object\ObjectManagerInterface;
-use TYPO3\Flow\Security\Account;
-use TYPO3\Flow\Security\Authentication\Provider\PersistedUsernamePasswordProvider;
-use TYPO3\Flow\Security\Authentication\Token\UsernamePassword;
-use TYPO3\Flow\Security\Authentication\TokenInterface;
-use TYPO3\Flow\Security\Exception\UnsupportedAuthenticationTokenException;
-use TYPO3\Flow\Security\Policy\PolicyService;
-use TYPO3\LDAP\Service\DirectoryService;
+use Neos\Eel\CompilingEvaluator;
+use Neos\Eel\Context;
+use Neos\Flow\Annotations as Flow;
+use Neos\Flow\Log\SecurityLoggerInterface;
+use Neos\Flow\ObjectManagement\ObjectManagerInterface;
+use Neos\Flow\Security\Account;
+use Neos\Flow\Security\Authentication\Provider\PersistedUsernamePasswordProvider;
+use Neos\Flow\Security\Authentication\Token\UsernamePassword;
+use Neos\Flow\Security\Authentication\TokenInterface;
+use Neos\Flow\Security\Exception\UnsupportedAuthenticationTokenException;
+use Neos\Flow\Security\Policy\PolicyService;
+use Neos\Ldap\Service\DirectoryService;
 
 /**
  * LDAP Authentication provider
  *
  * @Flow\Scope("prototype")
  */
-class LDAPProvider extends PersistedUsernamePasswordProvider
+class LdapProvider extends PersistedUsernamePasswordProvider
 {
 
     /**
-     * @Flow\Inject(setting="defaultContext", package="TYPO3.LDAP")
+     * @Flow\InjectConfiguration("defaultContext")
      * @var array
      */
     protected $defaultContext;
 
     /**
-     * @Flow\Inject(setting="roles", package="TYPO3.LDAP")
+     * @Flow\InjectConfiguration("roles")
      * @var array
      */
     protected $rolesConfiguration;
 
     /**
-     * @Flow\Inject(setting="party", package="TYPO3.LDAP")
+     * @Flow\InjectConfiguration("party")
      * @var array
      */
     protected $partyConfiguration;
@@ -91,7 +91,7 @@ class LDAPProvider extends PersistedUsernamePasswordProvider
 
     /**
      * @var boolean
-     * @Flow\Inject(setting="allowStandinAuthentication", package="TYPO3.LDAP")
+     * @Flow\InjectConfiguration("allowStandinAuthentication")
      */
     protected $allowStandinAuthentication = false;
 
@@ -200,6 +200,7 @@ class LDAPProvider extends PersistedUsernamePasswordProvider
      */
     protected function createParty(Account $account, array $ldapSearchResult)
     {
+        $this->logger->log('CREATING PARTY', LOG_DEBUG);
     }
 
     /**
@@ -212,6 +213,7 @@ class LDAPProvider extends PersistedUsernamePasswordProvider
      */
     protected function updateParty(Account $account, array $ldapSearchResult)
     {
+        $this->logger->log('UPDATING PARTY', LOG_DEBUG);
     }
 
     /**
@@ -279,6 +281,7 @@ class LDAPProvider extends PersistedUsernamePasswordProvider
      */
     public function emitAccountAuthenticated(Account $account, array $ldapSearchResult)
     {
+        $this->logger->log('ACCOUNT AUTHENTICATED', LOG_DEBUG);
     }
 
     /**
@@ -289,6 +292,7 @@ class LDAPProvider extends PersistedUsernamePasswordProvider
      */
     public function emitRolesSet(Account $account, array $ldapSearchResult)
     {
+        $this->logger->log('ROLES SET', LOG_DEBUG);
     }
 
 }

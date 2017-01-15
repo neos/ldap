@@ -1,8 +1,8 @@
 <?php
-namespace TYPO3\LDAP\Service\BindProvider;
+namespace Neos\Ldap\Service\BindProvider;
 
 /*                                                                        *
- * This script belongs to the Flow package "TYPO3.LDAP".                  *
+ * This script belongs to the Flow package "Neos.Ldap".                  *
  *                                                                        *
  * It is free software; you can redistribute it and/or modify it under    *
  * the terms of the GNU Lesser General Public License as published by the *
@@ -18,43 +18,58 @@ namespace TYPO3\LDAP\Service\BindProvider;
  * License along with the script.                                         *
  * If not, see http://www.gnu.org/licenses/lgpl.html                      *
  *                                                                        *
- * The TYPO3 project - inspiring people to share!                         *
+ * The Neos project - inspiring people to share!                         *
  *                                                                        */
 
+use Neos\Flow\Annotations as Flow;
+use Neos\Ldap\Service\BindProvider\BindProviderInterface;
+
 /**
- * Interface for binding.
+ * Bind to an OpenLDAP Server
+ *
+ * @Flow\Scope("prototype")
  */
-interface BindProviderInterface
+abstract class AbstractBindProvider implements BindProviderInterface
 {
 
     /**
-     * The link identifier to connect to the LDAP server
-     *
+     * @var resource
+     */
+    protected $linkIdentifier;
+
+    /**
+     * @var array
+     */
+    protected $options;
+
+    /**
+     * @param resource $linkIdentifier
+     * @param array $options
+     */
+    public function __construct($linkIdentifier, array $options)
+    {
+        $this->linkIdentifier = $linkIdentifier;
+        $this->options = $options;
+    }
+
+    /**
      * @return resource
      */
-    public function getLinkIdentifier();
+    public function getLinkIdentifier()
+    {
+        return $this->linkIdentifier;
+    }
 
     /**
-     * Bind to the server as defined by the settings
+     * Return the filtered username for directory search
+     * overwrite for special needs
      *
-     * @param $username
-     * @param $password
+     * @param string $username
+     * @return string
      */
-    public function bind($username, $password);
+    public function getFilteredUsername($username)
+    {
+        return $username;
+    }
 
-    /**
-     * Bind by dn and password
-     *
-     * @param $dn
-     * @param $password
-     */
-    public function verifyCredentials($dn, $password);
-
-    /**
-     * Get a filtered username
-     *
-     * @param $username
-     */
-    public function getFilteredUsername($username);
 }
-
