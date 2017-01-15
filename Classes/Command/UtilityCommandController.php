@@ -24,8 +24,8 @@ namespace Neos\Ldap\Command;
 use Symfony\Component\Yaml\Yaml;
 use Neos\Flow\Annotations as Flow;
 use Neos\Flow\Cli\CommandController;
-use Neos\Flow\Utility\Arrays;
-use Neos\Flow\Utility\Files;
+use Neos\Utility\Arrays;
+use Neos\Utility\Files;
 use Neos\Ldap\Service\DirectoryService;
 
 /**

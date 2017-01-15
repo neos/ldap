@@ -41,21 +41,20 @@ use Neos\Ldap\Service\DirectoryService;
  */
 class LdapProvider extends PersistedUsernamePasswordProvider
 {
-
     /**
-     * @Flow\InjectConfiguration("defaultContext")
+     * @Flow\InjectConfiguration(path="defaultContext", package="Neos.Ldap")
      * @var array
      */
     protected $defaultContext;
 
     /**
-     * @Flow\InjectConfiguration("roles")
+     * @Flow\InjectConfiguration(path="roles", package="Neos.Ldap")
      * @var array
      */
     protected $rolesConfiguration;
 
     /**
-     * @Flow\InjectConfiguration("party")
+     * @Flow\InjectConfiguration(path="party", package="Neos.Ldap")
      * @var array
      */
     protected $partyConfiguration;
@@ -90,8 +89,8 @@ class LdapProvider extends PersistedUsernamePasswordProvider
     protected $logger;
 
     /**
+     * @Flow\InjectConfiguration(path="allowStandinAuthentication", package="Neos.Ldap")
      * @var boolean
-     * @Flow\InjectConfiguration("allowStandinAuthentication")
      */
     protected $allowStandinAuthentication = false;
 
@@ -200,7 +199,6 @@ class LdapProvider extends PersistedUsernamePasswordProvider
      */
     protected function createParty(Account $account, array $ldapSearchResult)
     {
-        $this->logger->log('CREATING PARTY', LOG_DEBUG);
     }
 
     /**
@@ -213,7 +211,6 @@ class LdapProvider extends PersistedUsernamePasswordProvider
      */
     protected function updateParty(Account $account, array $ldapSearchResult)
     {
-        $this->logger->log('UPDATING PARTY', LOG_DEBUG);
     }
 
     /**
@@ -281,7 +278,6 @@ class LdapProvider extends PersistedUsernamePasswordProvider
      */
     public function emitAccountAuthenticated(Account $account, array $ldapSearchResult)
     {
-        $this->logger->log('ACCOUNT AUTHENTICATED', LOG_DEBUG);
     }
 
     /**
@@ -292,7 +288,6 @@ class LdapProvider extends PersistedUsernamePasswordProvider
      */
     public function emitRolesSet(Account $account, array $ldapSearchResult)
     {
-        $this->logger->log('ROLES SET', LOG_DEBUG);
     }
 
 }
