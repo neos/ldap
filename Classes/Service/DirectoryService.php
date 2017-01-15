@@ -85,7 +85,7 @@ class DirectoryService
         }
 
         try {
-            $connection = ldap_connect($this->options['host']);//, $this->options['port']);
+            $connection = ldap_connect($this->options['host'], $this->options['port']);
             $this->bindProvider = new $bindProviderClassName($connection, $this->options);
             $this->setLdapOptions();
         } catch (\Exception $exception) {
