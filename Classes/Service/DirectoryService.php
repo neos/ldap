@@ -185,7 +185,7 @@ class DirectoryService
     {
         $groups = array();
         $groupFilterOptions = Arrays::arrayMergeRecursiveOverrule(
-            array('dn' => 'dn', 'cn' => 'cn', 'includeParentGroups' => FALSE),
+            array('dn' => 'dn', 'cn' => 'cn'),
             isset($this->options['group']) && is_array($this->options['group']) ? $this->options['group'] : array()
         );
 
@@ -203,10 +203,6 @@ class DirectoryService
             foreach (ldap_get_entries($this->bindProvider->getLinkIdentifier(), $searchResult) as $group) {
                 if (is_array($group) && isset($group[$groupFilterOptions['dn']])) {
                     $groups[$group[$groupFilterOptions['dn']]] = $group[$groupFilterOptions['cn']][0];
-
-                    if ($groupFilterOptions['includeParentGroups']) {
-                        $groups = array_merge($groups, $this->getGroupMembership($group[$groupFilterOptions['dn']]));
-                    }
                 }
             }
         } else {
@@ -223,7 +219,7 @@ class DirectoryService
      */
     public function isServerOnline()
     {
-        return !$this->options['checkServerOnline'] || ServerStatusUtility::isServerOnline($this->options['host'], $this->options['port']);
+        return ServerStatusUtility::isServerOnline($this->options['host'], $this->options['port']);
     }
 
     /**

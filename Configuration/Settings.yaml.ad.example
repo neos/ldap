@@ -32,6 +32,3 @@ Neos:
 
               # will be prefixed to a given username if no other domain was specified
               domain: 'MY-DOMAIN'
-
-              # if FALSE, do not ping the server prior to login (ping might be blocked by firewall)
-              checkServerOnline: TRUE
