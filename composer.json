@@ -2,7 +2,7 @@
 	"name": "typo3/ldap",
 	"type": "typo3-flow-package",
 	"description": "LDAP Authentication for Flow",
-	"license": ["LGPL-3.0+"],
+	"license": ["MIT"],
 	"require":{
 		"typo3/flow": "*",
 		"ext-ldap": "*"
