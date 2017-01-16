@@ -1,12 +1,12 @@
-TYPO3:
+Neos:
   Flow:
     security:
       authentication:
         providers:
           ActiveDirectoryProvider:
-            provider: TYPO3\LDAP\Security\Authentication\Provider\LDAPProvider
+            provider: Neos\Ldap\Security\Authentication\Provider\LdapProvider
             providerOptions:
-              type: 'AD'
+              type: 'ActiveDirectory'
               host: localhost
               port: 389
               baseDn: dc=my-domain,dc=com

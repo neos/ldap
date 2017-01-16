@@ -1,8 +1,8 @@
 <?php
-namespace TYPO3\LDAP\Service\BindProvider;
+namespace Neos\Ldap\Service\BindProvider;
 
 /*                                                                        *
- * This script belongs to the Flow package "TYPO3.LDAP".                  *
+ * This script belongs to the Flow package "Neos.Ldap".                  *
  *                                                                        *
  * It is free software; you can redistribute it and/or modify it under    *
  * the terms of the GNU Lesser General Public License as published by the *
@@ -18,11 +18,11 @@ namespace TYPO3\LDAP\Service\BindProvider;
  * License along with the script.                                         *
  * If not, see http://www.gnu.org/licenses/lgpl.html                      *
  *                                                                        *
- * The TYPO3 project - inspiring people to share!                         *
+ * The Neos project - inspiring people to share!                         *
  *                                                                        */
 
-use TYPO3\Flow\Annotations as Flow;
-use TYPO3\Flow\Error\Exception;
+use Neos\Flow\Annotations as Flow;
+use Neos\Flow\Error\Exception;
 
 /**
  * Bind to an ActiveDirectory Server
@@ -66,7 +66,6 @@ class ActiveDirectoryBind extends AbstractBindProvider
                 $username = $username . '@' . $this->options['usernameSuffix'];
             }
         }
-
         return $username;
     }
 

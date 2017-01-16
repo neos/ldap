@@ -1,8 +1,8 @@
 <?php
-namespace TYPO3\LDAP\Command;
+namespace Neos\Ldap\Command;
 
 /*                                                                        *
- * This script belongs to the Flow package "TYPO3.LDAP".                  *
+ * This script belongs to the Flow package "Neos.Ldap".                  *
  *                                                                        *
  * It is free software; you can redistribute it and/or modify it under    *
  * the terms of the GNU Lesser General Public License as published by the *
@@ -18,15 +18,15 @@ namespace TYPO3\LDAP\Command;
  * License along with the script.                                         *
  * If not, see http://www.gnu.org/licenses/lgpl.html                      *
  *                                                                        *
- * The TYPO3 project - inspiring people to share!                         *
+ * The Neos project - inspiring people to share!                         *
  *                                                                        */
 
 use Symfony\Component\Yaml\Yaml;
-use TYPO3\Flow\Annotations as Flow;
-use TYPO3\Flow\Cli\CommandController;
-use TYPO3\Flow\Utility\Arrays;
-use TYPO3\Flow\Utility\Files;
-use TYPO3\LDAP\Service\DirectoryService;
+use Neos\Flow\Annotations as Flow;
+use Neos\Flow\Cli\CommandController;
+use Neos\Utility\Arrays;
+use Neos\Utility\Files;
+use Neos\Ldap\Service\DirectoryService;
 
 /**
  * Command controller to test settings and query the directory
@@ -35,7 +35,7 @@ class UtilityCommandController extends CommandController
 {
 
     /**
-     * @Flow\InjectConfiguration(path="security.authentication.providers", package="TYPO3.Flow")
+     * @Flow\InjectConfiguration(path="security.authentication.providers", package="Neos.Flow")
      * @var array
      */
     protected $authenticationProvidersConfiguration;
@@ -142,7 +142,7 @@ class UtilityCommandController extends CommandController
      * @param string $providerName Name of the authentication provider to use
      * @param string $settingsFile Path to a yaml file containing the settings to use for testing purposes
      * @return DirectoryService
-     * @throws \TYPO3\Flow\Mvc\Exception\StopActionException
+     * @throws \Neos\Flow\Mvc\Exception\StopActionException
      */
     protected function getDirectoryService($providerName, $settingsFile)
     {
@@ -161,7 +161,7 @@ class UtilityCommandController extends CommandController
      * @param string $providerName Name of the authentication provider to use
      * @param string $settingsFile Path to a yaml file containing the settings to use for testing purposes
      * @return array|mixed
-     * @throws \TYPO3\Flow\Mvc\Exception\StopActionException
+     * @throws \Neos\Flow\Mvc\Exception\StopActionException
      */
     protected function getOptions($providerName = null, $settingsFile = null)
     {

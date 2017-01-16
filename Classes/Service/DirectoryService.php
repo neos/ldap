@@ -1,8 +1,8 @@
 <?php
-namespace TYPO3\LDAP\Service;
+namespace Neos\Ldap\Service;
 
 /*                                                                        *
- * This script belongs to the Flow package "TYPO3.LDAP".                  *
+ * This script belongs to the Flow package "Neos.Ldap".                  *
  *                                                                        *
  * It is free software; you can redistribute it and/or modify it under    *
  * the terms of the GNU Lesser General Public License as published by the *
@@ -18,14 +18,14 @@ namespace TYPO3\LDAP\Service;
  * License along with the script.                                         *
  * If not, see http://www.gnu.org/licenses/lgpl.html                      *
  *                                                                        *
- * The TYPO3 project - inspiring people to share!                         *
+ * The Neos project - inspiring people to share!                         *
  *                                                                        */
 
-use TYPO3\Flow\Annotations as Flow;
-use TYPO3\Flow\Error\Exception;
-use TYPO3\Flow\Utility\Arrays;
-use TYPO3\LDAP\Service\BindProvider\BindProviderInterface;
-use TYPO3\LDAP\Utility\ServerStatusUtility;
+use Neos\Flow\Annotations as Flow;
+use Neos\Flow\Error\Exception;
+use Neos\Utility\Arrays;
+use Neos\Ldap\Service\BindProvider\BindProviderInterface;
+use Neos\Ldap\Utility\ServerStatusUtility;
 
 /**
  * A simple LDAP authentication service
@@ -45,7 +45,7 @@ class DirectoryService
     protected $options;
 
     /**
-     * @var \TYPO3\LDAP\Service\BindProvider\BindProviderInterface
+     * @var \Neos\Ldap\Service\BindProvider\BindProviderInterface
      */
     protected $bindProvider;
 
@@ -79,7 +79,7 @@ class DirectoryService
             return;
         }
 
-        $bindProviderClassName = 'TYPO3\LDAP\Service\BindProvider\\' . $this->options['type'] . 'Bind';
+        $bindProviderClassName = 'Neos\Ldap\Service\BindProvider\\' . $this->options['type'] . 'Bind';
         if (!class_exists($bindProviderClassName)) {
             throw new Exception('An bind provider for the service "' . $this->options['type'] . '" could not be resolved. Make sure it is a valid bind provider name!', 1327756744);
         }
