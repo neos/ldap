@@ -80,12 +80,6 @@ class LDAPProvider extends PersistedUsernamePasswordProvider
     protected $logger;
 
     /**
-     * @var boolean
-     * @Flow\Inject(setting="allowStandinAuthentication", package="TYPO3.LDAP")
-     */
-    protected $allowStandinAuthentication = false;
-
-    /**
      * @param string $name The name of this authentication provider
      * @param array $options Additional configuration options
      */
@@ -114,66 +108,42 @@ class LDAPProvider extends PersistedUsernamePasswordProvider
         $credentials = $authenticationToken->getCredentials();
 
         if (is_array($credentials) && isset($credentials['username'])) {
-            if ($this->directoryService->isServerOnline()) {
-                try {
-                    $ldapUser = $this->directoryService->authenticate($credentials['username'], $credentials['password']);
-                    if ($ldapUser) {
-                        $account = $this->accountRepository->findActiveByAccountIdentifierAndAuthenticationProviderName($credentials['username'], $this->name);
-                        $newlyCreatedAccount = false;
-                        if ($account === null) {
-                            $account = new Account();
-                            $account->setAccountIdentifier($credentials['username']);
-                            $account->setAuthenticationProviderName($this->name);
+            try {
+                $ldapUser = $this->directoryService->authenticate($credentials['username'], $credentials['password']);
+                if ($ldapUser) {
+                    $account = $this->accountRepository->findActiveByAccountIdentifierAndAuthenticationProviderName($credentials['username'], $this->name);
+                    $newlyCreatedAccount = false;
+                    if ($account === null) {
+                        $account = new Account();
+                        $account->setAccountIdentifier($credentials['username']);
+                        $account->setAuthenticationProviderName($this->name);
 
-                            $this->createParty($account, $ldapUser);
+                        $this->createParty($account, $ldapUser);
 
-                            $this->accountRepository->add($account);
-                            $newlyCreatedAccount = true;
-                        }
-
-                        if ($account instanceof Account) {
-                            if ($this->allowStandinAuthentication === true) {
-                                // Cache the password to have cached login if LDAP is unavailable
-                                $account->setCredentialsSource($this->hashService->generateHmac($credentials['password']));
-                            }
-                            $authenticationToken->setAuthenticationStatus(TokenInterface::AUTHENTICATION_SUCCESSFUL);
-                            $authenticationToken->setAccount($account);
-
-                            $this->setRoles($account, $ldapUser);
-                            $this->emitRolesSet($account, $ldapUser);
-                            if ($newlyCreatedAccount === false) {
-                                $this->updateParty($account, $ldapUser);
-                            }
-                            $this->emitAccountAuthenticated($account, $ldapUser);
-                            $this->accountRepository->update($account);
-
-                        } elseif ($authenticationToken->getAuthenticationStatus() !== TokenInterface::AUTHENTICATION_SUCCESSFUL) {
-                            $authenticationToken->setAuthenticationStatus(TokenInterface::NO_CREDENTIALS_GIVEN);
-                        }
-                    } else {
-                        $authenticationToken->setAuthenticationStatus(TokenInterface::WRONG_CREDENTIALS);
+                        $this->accountRepository->add($account);
+                        $newlyCreatedAccount = true;
                     }
 
-                } catch (\Exception $exception) {
-                    $this->logger->log('Authentication failed: ' . $exception->getMessage(), LOG_ALERT);
-                }
-            } elseif ($this->allowStandinAuthentication === true) {
-                $account = $this->accountRepository->findActiveByAccountIdentifierAndAuthenticationProviderName($credentials['username'], $this->name);
-
-                // Server not available, fallback to the cached password hash
-                if ($account instanceof Account) {
-                    if ($this->hashService->validateHmac($credentials['password'], $account->getCredentialsSource())) {
+                    if ($account instanceof Account) {
                         $authenticationToken->setAuthenticationStatus(TokenInterface::AUTHENTICATION_SUCCESSFUL);
                         $authenticationToken->setAccount($account);
-                    } else {
-                        $authenticationToken->setAuthenticationStatus(TokenInterface::WRONG_CREDENTIALS);
+
+                        $this->setRoles($account, $ldapUser);
+                        $this->emitRolesSet($account, $ldapUser);
+                        if ($newlyCreatedAccount === false) {
+                            $this->updateParty($account, $ldapUser);
+                        }
+                        $this->emitAccountAuthenticated($account, $ldapUser);
+                        $this->accountRepository->update($account);
+
+                    } elseif ($authenticationToken->getAuthenticationStatus() !== TokenInterface::AUTHENTICATION_SUCCESSFUL) {
+                        $authenticationToken->setAuthenticationStatus(TokenInterface::NO_CREDENTIALS_GIVEN);
                     }
-                } elseif ($authenticationToken->getAuthenticationStatus() !== TokenInterface::AUTHENTICATION_SUCCESSFUL) {
-                    $authenticationToken->setAuthenticationStatus(TokenInterface::NO_CREDENTIALS_GIVEN);
+                } else {
+                    $authenticationToken->setAuthenticationStatus(TokenInterface::WRONG_CREDENTIALS);
                 }
-            } else {
-                $this->logger->log('Authentication failed: directory server offline and standin authentication is disabled', LOG_ALERT);
-                $authenticationToken->setAuthenticationStatus(TokenInterface::WRONG_CREDENTIALS);
+            } catch (\Exception $exception) {
+                $this->logger->log('Authentication failed: ' . $exception->getMessage(), LOG_ALERT);
             }
         } else {
             $authenticationToken->setAuthenticationStatus(TokenInterface::NO_CREDENTIALS_GIVEN);
