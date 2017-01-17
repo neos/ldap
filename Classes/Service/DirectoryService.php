@@ -49,6 +49,15 @@ class DirectoryService
         $this->name = $name;
         $this->options = $options;
     }
+    
+    /**
+     * @return resource
+     */
+    public function getConnection()
+    {
+        $this->ldapConnect();
+        return $this->bindProvider->getLinkIdentifier();
+    }
 
     /**
      * Initialize the Ldap server connection
@@ -64,19 +73,15 @@ class DirectoryService
             // Already connected
             return;
         }
-
-        $bindProviderClassName = 'Neos\Ldap\Service\BindProvider\\' . $this->options['type'] . 'Bind';
+        
+        $bindProviderClassName = $this->options['bindProvider'];
         if (!class_exists($bindProviderClassName)) {
-            throw new Exception('An bind provider for the service "' . $this->options['type'] . '" could not be resolved. Make sure it is a valid bind provider name!', 1327756744);
+            throw new Exception('Bind provider for the service "' . $this->name . '" could not be resolved.', 1327756744);
         }
 
-        try {
-            $connection = ldap_connect($this->options['host'], $this->options['port']);
-            $this->bindProvider = new $bindProviderClassName($connection, $this->options);
-            $this->setLdapOptions();
-        } catch (\Exception $exception) {
-            throw new Exception('Could not connect to Ldap server', 1326985286);
-        }
+        $connection = ldap_connect($this->options['host'], $this->options['port']);
+        $this->bindProvider = new $bindProviderClassName($connection, $this->options);
+        $this->setLdapOptions();
     }
 
     /**
@@ -126,6 +131,18 @@ class DirectoryService
     }
 
     /**
+     * @param string|null $username
+     * @param string|null $password
+     * @return void
+     * @throws Exception
+     */
+    public function bind($username = null, $password = null)
+    {
+        $this->ldapConnect();
+        $this->bindProvider->bind($username, $password);
+    }
+
+    /**
      * @param string $dn  User or group DN.
      * @return array group  DN => CN mapping
      * @throws Exception
@@ -156,27 +173,6 @@ class DirectoryService
     public function isServerOnline()
     {
         return ServerStatusUtility::isServerOnline($this->options['host'], $this->options['port']);
-    }
-
-    /**
-     * @return resource
-     */
-    public function getConnection()
-    {
-        $this->ldapConnect();
-        return $this->bindProvider->getLinkIdentifier();
-    }
-
-    /**
-     * @param string|null $username
-     * @param string|null $password
-     * @return void
-     * @throws Exception
-     */
-    public function bind($username = null, $password = null)
-    {
-        $this->ldapConnect();
-        $this->bindProvider->bind($username, $password);
     }
 }
 
