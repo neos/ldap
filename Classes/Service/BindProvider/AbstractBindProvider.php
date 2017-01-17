@@ -76,7 +76,7 @@ abstract class AbstractBindProvider implements BindProviderInterface
         } catch (\Exception $exception) {
             $bindIsSuccessful = false;
         }
-        
+
         if (!$bindIsSuccessful) {
             throw new Exception('Failed to bind with DN: "' . $userDn . '"', 1327763970);
         }
@@ -94,7 +94,7 @@ abstract class AbstractBindProvider implements BindProviderInterface
         } catch (\Exception $exception) {
             $bindIsSuccessful = false;
         }
-        
+
         if (!$bindIsSuccessful) {
             throw new Exception('Failed to bind anonymously', 1327763970);
         }

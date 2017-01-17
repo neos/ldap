@@ -50,12 +50,12 @@ class LdapBind extends AbstractBindProvider
         if (!empty($username) && !empty($password)) {
             // if credentials are given, use them to authenticate
             $this->bindWithDn(str_replace('?', $username, $this->options['bind']['dn']), $password);
-        }
-        elseif (isset($this->options['bind']['password'])) {
+
+        } elseif (isset($this->options['bind']['password'])) {
             // if the settings specify a bind password, we are safe to assume no anonymous authentication is needed
             $this->bindWithDn($this->options['bind']['dn'], $this->options['bind']['password']);
-        }
-        elseif ($this->options['bind']['anonymous']) {
+
+        } elseif ($this->options['bind']['anonymous']) {
             // if allowed, bind without username or password
             $this->bindAnonymously();
         }

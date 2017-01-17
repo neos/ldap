@@ -16,7 +16,7 @@ namespace Neos\Ldap\Service\BindProvider;
  */
 interface BindProviderInterface
 {
-    
+
     /**
      * The link identifier to connect to the Ldap server.
      *
@@ -47,7 +47,7 @@ interface BindProviderInterface
      * Get a filtered username.
      *
      * @param $username
-     * @return string 
+     * @return string
      */
     public function filterUsername($username);
 
