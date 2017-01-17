@@ -80,7 +80,7 @@ class DirectoryService
     }
 
     /**
-     * Set the Ldap options configured in the settings
+     * Set the Ldap options configured in the settings.
      *
      * Loops over the ldapOptions array, and finds the corresponding Ldap option by prefixing
      * LDAP_OPT_ to the uppercased array key.
@@ -94,11 +94,9 @@ class DirectoryService
      */
     protected function setLdapOptions()
     {
-        if (!empty($this->options['ldapOptions']) && is_array($this->options['ldapOptions'])) {
-            foreach ($this->options['ldapOptions'] as $ldapOption => $ldapOptionValue) {
-                $constantName = 'LDAP_OPT_' . strtoupper($ldapOption);
-                ldap_set_option($this->bindProvider->getLinkIdentifier(), constant($constantName), $ldapOptionValue);
-            }
+        foreach ($this->options['ldapOptions'] as $ldapOption => $value) {
+            $constantName = 'LDAP_OPT_' . strtoupper($ldapOption);
+            ldap_set_option($this->bindProvider->getLinkIdentifier(), constant($constantName), $value);
         }
     }
 
