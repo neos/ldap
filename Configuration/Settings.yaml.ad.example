@@ -11,6 +11,10 @@ Neos:
               port: 389
               baseDn: dc=my-domain,dc=com
 
+              # If set, ping the server to verify it is online before binding.
+              # This avoids long timeouts when the server is not available.
+              pingServerFirst: TRUE
+
               group:
                 membershipFilter: '(&(member=%s)(objectClass=group))'
                 dn: 'dn'
