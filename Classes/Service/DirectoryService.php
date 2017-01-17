@@ -73,11 +73,11 @@ class DirectoryService
             // Already connected
             return;
         }
-        
+
         $defaultClass = 'Neos\Ldap\Service\BindProvider\LdapBind';
         $bindProviderClass = isset($this->options['bindProvider']) ? $this->options['bindProvider'] : $defaultClass;
         if (!class_exists($bindProviderClass)) {
-            throw new Exception('Bind provider for the service "' . $this->name . '" could not be resolved.', 1327756744);
+            throw new Exception("Bind provider '$bindProviderClass' for the service '$this->name' could not be resolved.", 1327756744);
         }
 
         $connection = ldap_connect($this->options['host'], $this->options['port']);
