@@ -203,17 +203,6 @@ class DirectoryService
     }
 
     /**
-     * Check if the server is online / can be reached
-     *
-     * @return boolean
-     */
-    public function isServerOnline()
-    {
-        $ping = isset($this->options['ping']) && $this->options['ping'];
-        return !$ping || ServerStatusUtility::isServerOnline($this->options['host'], $this->options['port']);
-    }
-
-    /**
      * @return resource
      */
     public function getConnection()
