@@ -101,12 +101,13 @@ class LdapProvider extends PersistedUsernamePasswordProvider
         $account = $this->accountRepository->findActiveByAccountIdentifierAndAuthenticationProviderName($credentials['username'], $this->name);
         if ($account === null) {
             $account = $this->createAccountForCredentials($credentials);
-            $this->emitAccountCreated($account, $ldapUser);
-        }
 
-        // fail authentication if no account was found and none was created
-        if ($account === null) {
-            return $authenticationToken->setAuthenticationStatus(TokenInterface::WRONG_CREDENTIALS);
+            // fail authentication if no account was found and none was created
+            if ($account === null) {
+                return $authenticationToken->setAuthenticationStatus(TokenInterface::WRONG_CREDENTIALS);
+            } 
+            
+            $this->emitAccountCreated($account, $ldapUser);
         }
 
         // map user and group dns to security roles
