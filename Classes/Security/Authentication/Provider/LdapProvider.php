@@ -77,7 +77,7 @@ class LdapProvider extends PersistedUsernamePasswordProvider
         if (!($authenticationToken instanceof UsernamePassword)) {
             throw new UnsupportedAuthenticationTokenException('This provider cannot authenticate the given token.', 1217339840);
         }
-        
+
         // do not accept empty or malformed credentials
         $credentials = $authenticationToken->getCredentials();
         if (!is_array($credentials) || !isset($credentials['username'])) {
@@ -105,8 +105,8 @@ class LdapProvider extends PersistedUsernamePasswordProvider
             // fail authentication if no account was found and none was created
             if ($account === null) {
                 return $authenticationToken->setAuthenticationStatus(TokenInterface::WRONG_CREDENTIALS);
-            } 
-            
+            }
+
             $this->emitAccountCreated($account, $ldapUser);
         }
 
@@ -151,14 +151,14 @@ class LdapProvider extends PersistedUsernamePasswordProvider
         foreach ($this->rolesConfiguration['default'] as $roleIdentifier) {
             $account->addRole($this->policyService->getRole($roleIdentifier));
         }
-        
+
         // map users dns to roles
         foreach ($this->rolesConfiguration['userMapping'] as $roleIdentifier => $userDns) {
             if (in_array($ldapSearchResult['dn'], $userDns)) {
                 $account->addRole($this->policyService->getRole($roleIdentifier));
             }
         }
-        
+
         // map group dns to roles
         $memberOf = $this->directoryService->getMemberOf($ldapSearchResult['dn']);
         foreach ($this->rolesConfiguration['groupMapping'] as $roleIdentifier => $groupDns) {
