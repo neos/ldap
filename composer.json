@@ -11,5 +11,10 @@
 		"psr-0":{
 			"TYPO3\\LDAP": "Classes"
 		}
+	},
+	"extra": {
+		"branch-alias": {
+			"dev-master": "1.0.x-dev"
+		}
 	}
 }
