@@ -112,35 +112,8 @@ class DirectoryService
      */
     public function authenticate($username, $password)
     {
-        try {
-            $this->ldapConnect();
-            $this->bindProvider->bind($username, $password);
-            $entries = $this->getUserEntries($username);
-            if (!empty($entries)) {
-                $this->bindProvider->verifyCredentials($entries[0]['dn'], $password);
-                // get all entries in the second run in the case of anonymous bind
-                $anonymousBind = Arrays::getValueByPath($this->options, 'bind.anonymous');
-                if ($anonymousBind === true) {
-                    $entries = $this->getUserEntries($username);
-                } else {
-                    $this->bindProvider->bind($username, $password);
-                }
-            }
-            return $entries[0];
-        } catch (\Exception $exception) {
-            throw new Exception('Error during Ldap server authentication: ' . $exception->getMessage(), 1323167213);
-        }
-    }
-
-    /**
-     * Get the user entities from the Ldap server.
-     *
-     * @param $username
-     * @return array
-     * @throws Exception
-     */
-    public function getUserEntries($username)
-    {
+        $this->bind($username, $password);
+        
         $searchResult = @ldap_search(
             $this->bindProvider->getLinkIdentifier(),
             $this->options['baseDn'],
@@ -151,7 +124,7 @@ class DirectoryService
             throw new Exception('Error during Ldap user search: ' . ldap_errno($this->bindProvider->getLinkIdentifier()), 1443798372);
         }
 
-        return ldap_get_entries($this->bindProvider->getLinkIdentifier(), $searchResult);
+        return current(ldap_get_entries($this->bindProvider->getLinkIdentifier(), $searchResult)) ?: null;
     }
 
     /**
