@@ -48,10 +48,6 @@ class DirectoryService
     {
         $this->name = $name;
         $this->options = $options;
-
-        if (!extension_loaded('ldap')) {
-            throw new Exception('PHP is not compiled with Ldap support', 1305406047);
-        }
     }
 
     /**
