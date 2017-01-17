@@ -128,7 +128,7 @@ class LdapProvider extends PersistedUsernamePasswordProvider
      * @param array $credentials array containing username and password
      * @return Account
      */
-    protected function createAccountForCredentials()
+    protected function createAccountForCredentials(array $credentials)
     {
         $account = new Account();
         $account->setAccountIdentifier($credentials['username']);
