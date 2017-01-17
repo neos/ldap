@@ -209,8 +209,8 @@ class DirectoryService
      */
     public function isServerOnline()
     {
-        $skipPing = !isset($this->options['pingServerFirst']) || $this->options['pingServerFirst'] == FALSE;
-        return $skipPing || ServerStatusUtility::isServerOnline($this->options['host'], $this->options['port']);
+        $ping = isset($this->options['ping']) && $this->options['ping'];
+        return !$ping || ServerStatusUtility::isServerOnline($this->options['host'], $this->options['port']);
     }
 
     /**

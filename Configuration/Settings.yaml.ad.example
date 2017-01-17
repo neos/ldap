@@ -13,7 +13,7 @@ Neos:
 
               # If set, ping the server to verify it is online before binding.
               # This avoids long timeouts when the server is not available.
-              pingServerFirst: TRUE
+              ping: TRUE
 
               group:
                 membershipFilter: '(&(member=%s)(objectClass=group))'
