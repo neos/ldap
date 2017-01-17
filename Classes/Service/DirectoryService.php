@@ -137,8 +137,7 @@ class DirectoryService
     }
 
     /**
-     * Get the user entities from the Ldap server
-     * At least the dn should be returned.
+     * Get the user entities from the Ldap server.
      *
      * @param $username
      * @return array
@@ -149,57 +148,37 @@ class DirectoryService
         $searchResult = @ldap_search(
             $this->bindProvider->getLinkIdentifier(),
             $this->options['baseDn'],
-            str_replace(
-                '?',
-                $this->bindProvider->getFilteredUsername($username),
-                $this->options['filter']['account']
-            )
+            sprintf($this->options['filter']['account'], $this->bindProvider->getFilteredUsername($username))
         );
-        if ($searchResult) {
-            $entries = ldap_get_entries($this->bindProvider->getLinkIdentifier(), $searchResult);
 
-            if ($entries['count'] === 1) {
-                return $entries;
-            }
-        } else {
+        if (!$searchResult) {
             throw new Exception('Error during Ldap user search: ' . ldap_errno($this->bindProvider->getLinkIdentifier()), 1443798372);
         }
+
+        return ldap_get_entries($this->bindProvider->getLinkIdentifier(), $searchResult);
     }
 
     /**
-     * @param string $username
-     * @return array
+     * @param string $dn  User or group DN.
+     * @return array group  DN => CN mapping
      * @throws Exception
      */
-    public function getMemberOf($username)
+    public function getMemberOf($dn)
     {
-        $groups = array();
-        $groupFilterOptions = Arrays::arrayMergeRecursiveOverrule(
-            array('dn' => 'dn', 'cn' => 'cn'),
-            isset($this->options['group']) && is_array($this->options['group']) ? $this->options['group'] : array()
-        );
-
-        if (!isset($groupFilterOptions['membershipFilter'])) {
-            return $groups;
-        }
-
         $searchResult = @ldap_search(
             $this->bindProvider->getLinkIdentifier(),
             $this->options['baseDn'],
-            sprintf($groupFilterOptions['membershipFilter'], $this->bindProvider->getFilteredUsername($username))
+            sprintf($this->options['filter']['memberOf'], $dn)
         );
 
-        if ($searchResult) {
-            foreach (ldap_get_entries($this->bindProvider->getLinkIdentifier(), $searchResult) as $group) {
-                if (is_array($group) && isset($group[$groupFilterOptions['dn']])) {
-                    $groups[$group[$groupFilterOptions['dn']]] = $group[$groupFilterOptions['cn']][0];
-                }
-            }
-        } else {
+        if (!$searchResult) {
             throw new Exception('Error during Ldap group search: ' . ldap_errno($this->bindProvider->getLinkIdentifier()), 1443476083);
         }
 
-        return $groups;
+        return array_map(
+            function (array $memberOf) { return $memberOf['dn']; },
+            ldap_get_entries($this->bindProvider->getLinkIdentifier(), $searchResult)
+        );
     }
 
     /**

@@ -11,11 +11,6 @@ Neos:
               port: 389
               baseDn: dc=my-domain,dc=com
 
-              group:
-                membershipFilter: '(&(objectClass=posixGroup)(memberUid=%s))'
-                dn: 'dn'
-                cn: 'cn'
-
               bind:
                 anonymous: TRUE
                 dn:
@@ -29,9 +24,10 @@ Neos:
               ldapOptions:
                 protocol_version: 3
 
-              # ? will be replaced with the username provided
               filter:
-                account: '(uid=?)'
+                # %s will be replaced with the username / dn provided
+                account: '(samaccountname=%s)'
+                memberOf: '(&(objectClass=posixGroup)(memberUid=%s))'
 
                 # this will use the filter with domain, set it to yes to remove it for search
                 ignoreDomain: TRUE

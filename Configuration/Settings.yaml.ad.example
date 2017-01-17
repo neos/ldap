@@ -11,11 +11,6 @@ Neos:
               port: 389
               baseDn: dc=my-domain,dc=com
 
-              group:
-                membershipFilter: '(&(member=%s)(objectClass=group))'
-                dn: 'dn'
-                cn: 'cn'
-
               # All PHP Ldap options can be set here. Make the constant lowercase
               # and remove the ldap_opt_ prefix.
               # Example: LDAP_OPT_PROTOCOL_VERSION becomes protocol_version
@@ -23,9 +18,10 @@ Neos:
                 protocol_version: 3
                 referrals: 0
 
-              # ? will be replaced with the username provided
               filter:
-                account: '(samaccountname=?)'
+                # %s will be replaced with the username / dn provided
+                account: '(samaccountname=%s)'
+                memberOf: '(&(member=%s)(objectClass=group))'
 
                 # this will use the filter with domain, set it to yes to remove it for search
                 ignoreDomain: FALSE
