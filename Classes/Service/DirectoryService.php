@@ -128,7 +128,8 @@ class DirectoryService
             throw new Exception('Error during Ldap user search: ' . ldap_errno($this->bindProvider->getLinkIdentifier()), 1443798372);
         }
 
-        return current(ldap_get_entries($this->bindProvider->getLinkIdentifier(), $searchResult)) ?: null;
+        $entries = ldap_get_entries($this->bindProvider->getLinkIdentifier(), $searchResult);
+        return count($entries) ? $entries[0] : null;
     }
 
     /**
@@ -162,7 +163,10 @@ class DirectoryService
 
         return array_map(
             function (array $memberOf) { return $memberOf['dn']; },
-            ldap_get_entries($this->bindProvider->getLinkIdentifier(), $searchResult)
+            array_filter(
+                ldap_get_entries($this->bindProvider->getLinkIdentifier(), $searchResult),
+                function ($element) { return is_array($element); }
+            )
         );
     }
 
