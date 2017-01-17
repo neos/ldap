@@ -49,7 +49,7 @@ class DirectoryService
         $this->name = $name;
         $this->options = $options;
     }
-    
+
     /**
      * @return resource
      */
@@ -75,7 +75,7 @@ class DirectoryService
         }
 
         $defaultClass = 'Neos\Ldap\Service\BindProvider\LdapBind';
-        $bindProviderClass = isset($this->options['bindProvider']) ? $this->options['bindProvider'] : $defaultClass;
+        $bindProviderClass = isset($this->options['bind']['provider']) ? $this->options['bind']['provider'] : $defaultClass;
         if (!class_exists($bindProviderClass)) {
             throw new Exception("Bind provider '$bindProviderClass' for the service '$this->name' could not be resolved.", 1327756744);
         }
@@ -117,7 +117,7 @@ class DirectoryService
     public function authenticate($username, $password)
     {
         $this->bind($username, $password);
-        
+
         $searchResult = @ldap_search(
             $this->bindProvider->getLinkIdentifier(),
             $this->options['baseDn'],
