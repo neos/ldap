@@ -16,12 +16,13 @@ Neos:
                 dn: 'dn'
                 cn: 'cn'
 
+              # How to authenticate towards the server. Normally this is a given
+              # service account and password. Other options are also available,
+              # consult the bind provider class LdapBind for more examples.
               bind:
-                anonymous: TRUE
-                dn:
-                password:
-              user:
-                dn:
+                dn: 'uid=ldapserviceuser,dc=example,dc=com'
+                password: 'secret'
+                anonymous: FALSE
 
               # All PHP Ldap options can be set here. Make the constant lowercase
               # and remove the ldap_opt_ prefix.
