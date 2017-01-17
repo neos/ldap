@@ -11,11 +11,8 @@ namespace Neos\Ldap\Security\Authentication\Provider;
  * source code.
  */
 
-use Neos\Eel\CompilingEvaluator;
-use Neos\Eel\Context;
 use Neos\Flow\Annotations as Flow;
 use Neos\Flow\Log\SecurityLoggerInterface;
-use Neos\Flow\ObjectManagement\ObjectManagerInterface;
 use Neos\Flow\Security\Account;
 use Neos\Flow\Security\Authentication\Provider\PersistedUsernamePasswordProvider;
 use Neos\Flow\Security\Authentication\Token\UsernamePassword;
@@ -31,35 +28,12 @@ use Neos\Ldap\Service\DirectoryService;
  */
 class LdapProvider extends PersistedUsernamePasswordProvider
 {
-    /**
-     * @Flow\InjectConfiguration(path="defaultContext", package="Neos.Ldap")
-     * @var array
-     */
-    protected $defaultContext;
 
     /**
      * @Flow\InjectConfiguration(path="roles", package="Neos.Ldap")
      * @var array
      */
     protected $rolesConfiguration;
-
-    /**
-     * @Flow\InjectConfiguration(path="party", package="Neos.Ldap")
-     * @var array
-     */
-    protected $partyConfiguration;
-
-    /**
-     * @Flow\Inject
-     * @var CompilingEvaluator
-     */
-    protected $eelEvaluator;
-
-    /**
-     * @Flow\Inject
-     * @var ObjectManagerInterface
-     */
-    protected $objectManager;
 
     /**
      * @Flow\Inject
@@ -89,7 +63,7 @@ class LdapProvider extends PersistedUsernamePasswordProvider
     }
 
     /**
-     * Authenticate the current token. If it's not possible to connect to the Ldap server the provider
+     * Authenticate the current token. If it's not possible to connect to the LDAP server the provider
      * tries to authenticate against cached credentials in the database that were
      * cached on the last successful login for the user to authenticate.
      *
@@ -99,78 +73,67 @@ class LdapProvider extends PersistedUsernamePasswordProvider
      */
     public function authenticate(TokenInterface $authenticationToken)
     {
+        // we can only authenticate users by password
         if (!($authenticationToken instanceof UsernamePassword)) {
             throw new UnsupportedAuthenticationTokenException('This provider cannot authenticate the given token.', 1217339840);
         }
-
-        $account = null;
+        
+        // do not accept empty or malformed credentials
         $credentials = $authenticationToken->getCredentials();
-
-        if (is_array($credentials) && isset($credentials['username'])) {
-            try {
-                $ldapUser = $this->directoryService->authenticate($credentials['username'], $credentials['password']);
-                if ($ldapUser) {
-                    $account = $this->accountRepository->findActiveByAccountIdentifierAndAuthenticationProviderName($credentials['username'], $this->name);
-                    $newlyCreatedAccount = false;
-                    if ($account === null) {
-                        $account = new Account();
-                        $account->setAccountIdentifier($credentials['username']);
-                        $account->setAuthenticationProviderName($this->name);
-
-                        $this->createParty($account, $ldapUser);
-
-                        $this->accountRepository->add($account);
-                        $newlyCreatedAccount = true;
-                    }
-
-                    if ($account instanceof Account) {
-                        $authenticationToken->setAuthenticationStatus(TokenInterface::AUTHENTICATION_SUCCESSFUL);
-                        $authenticationToken->setAccount($account);
-
-                        $this->setRoles($account, $ldapUser);
-                        $this->emitRolesSet($account, $ldapUser);
-                        if ($newlyCreatedAccount === false) {
-                            $this->updateParty($account, $ldapUser);
-                        }
-                        $this->emitAccountAuthenticated($account, $ldapUser);
-                        $this->accountRepository->update($account);
-
-                    } elseif ($authenticationToken->getAuthenticationStatus() !== TokenInterface::AUTHENTICATION_SUCCESSFUL) {
-                        $authenticationToken->setAuthenticationStatus(TokenInterface::NO_CREDENTIALS_GIVEN);
-                    }
-                } else {
-                    $authenticationToken->setAuthenticationStatus(TokenInterface::WRONG_CREDENTIALS);
-                }
-            } catch (\Exception $exception) {
-                $this->logger->log('Authentication failed: ' . $exception->getMessage(), LOG_ALERT);
-            }
-        } else {
-            $authenticationToken->setAuthenticationStatus(TokenInterface::NO_CREDENTIALS_GIVEN);
+        if (!is_array($credentials) || !isset($credentials['username'])) {
+            return $authenticationToken->setAuthenticationStatus(TokenInterface::NO_CREDENTIALS_GIVEN);
         }
+
+        // retrieve user data from the remote directory server
+        try {
+            $ldapUser = null;
+            $ldapUser = $this->directoryService->authenticate($credentials['username'], $credentials['password']);
+        } catch (\Exception $exception) {
+            $this->logger->log('Authentication failed: ' . $exception->getMessage(), LOG_ALERT);
+        }
+
+        // fail authentication if the directory server does not know any user with the given credentials
+        if ($ldapUser === null) {
+            return $authenticationToken->setAuthenticationStatus(TokenInterface::WRONG_CREDENTIALS);
+        }
+
+        // retrieve or create account for the credentials
+        $account = $this->accountRepository->findActiveByAccountIdentifierAndAuthenticationProviderName($credentials['username'], $this->name);
+        if ($account === null) {
+            $account = $this->createAccountForCredentials($credentials);
+            $this->emitAccountCreated($account, $ldapUser);
+        }
+
+        // fail authentication if no account was found and none was created
+        if ($account === null) {
+            return $authenticationToken->setAuthenticationStatus(TokenInterface::WRONG_CREDENTIALS);
+        }
+
+        // map user and group dns to security roles
+        $this->setRoles($account, $ldapUser);
+        $this->emitRolesSet($account, $ldapUser);
+
+        // mark authentication successful
+        $authenticationToken->setAuthenticationStatus(TokenInterface::AUTHENTICATION_SUCCESSFUL);
+        $authenticationToken->setAccount($account);
+        $this->emitAccountAuthenticated($account, $ldapUser);
     }
 
     /**
-     * Create a new party for a user's first login
-     * Extend this Provider class and implement this method to create a party
+     * Create a new account for the given credentials. Return null if you
+     * do not want to create a new account, that is, only authenticate
+     * existing accounts from the database and fail on new logins.
      *
-     * @param Account $account The freshly created account that should be used for this party
-     * @param array $ldapSearchResult The first result returned by ldap_search
-     * @return void
+     * @param array $credentials array containing username and password
+     * @return Account
      */
-    protected function createParty(Account $account, array $ldapSearchResult)
+    protected function createAccountForCredentials()
     {
-    }
-
-    /**
-     * Update the party for a user on subsequent logins
-     * Extend this Provider class and implement this method to update the party
-     *
-     * @param Account $account The account with the party
-     * @param array $ldapSearchResult
-     * @return void
-     */
-    protected function updateParty(Account $account, array $ldapSearchResult)
-    {
+        $account = new Account();
+        $account->setAccountIdentifier($credentials['username']);
+        $account->setAuthenticationProviderName($this->name);
+        $this->accountRepository->add($account);
+        return $account;
     }
 
     /**
@@ -183,51 +146,38 @@ class LdapProvider extends PersistedUsernamePasswordProvider
      */
     protected function setRoles(Account $account, array $ldapSearchResult)
     {
-        if (is_array($this->rolesConfiguration)) {
-            $contextVariables = array(
-                'ldapUser' => $ldapSearchResult,
-            );
-            if (isset($this->defaultContext) && is_array($this->defaultContext)) {
-                foreach ($this->defaultContext as $contextVariable => $objectName) {
-                    $object = $this->objectManager->get($objectName);
-                    $contextVariables[$contextVariable] = $object;
-                }
-            }
-
-            foreach ($this->rolesConfiguration['default'] as $roleIdentifier) {
-                $role = $this->policyService->getRole($roleIdentifier);
-                $account->addRole($role);
-            }
-
-            $eelContext = new Context($contextVariables);
-            if (isset($this->partyConfiguration['dn'])) {
-                $dn = $this->eelEvaluator->evaluate($this->partyConfiguration['dn'], $eelContext);
-                foreach ($this->rolesConfiguration['userMapping'] as $roleIdentifier => $userDns) {
-                    if (in_array($dn, $userDns)) {
-                        $role = $this->policyService->getRole($roleIdentifier);
-                        $account->addRole($role);
-                    }
-                }
-            } elseif (!empty($this->rolesConfiguration['userMapping'])) {
-                $this->logger->log('User mapping found but no party mapping for dn set', LOG_ALERT);
-            }
-
-            if (isset($this->partyConfiguration['username'])) {
-                $username = $this->eelEvaluator->evaluate($this->partyConfiguration['username'], $eelContext);
-                $groupMembership = $this->directoryService->getGroupMembership($username);
-                foreach ($this->rolesConfiguration['groupMapping'] as $roleIdentifier => $remoteRoleIdentifiers) {
-                    foreach ($remoteRoleIdentifiers as $remoteRoleIdentifier) {
-                        $role = $this->policyService->getRole($roleIdentifier);
-
-                        if (isset($groupMembership[$remoteRoleIdentifier])) {
-                            $account->addRole($role);
-                        }
-                    }
-                }
-            } elseif (!empty($this->rolesConfiguration['groupMapping'])) {
-                $this->logger->log('Group mapping found but no party mapping for username set', LOG_ALERT);
+        // map all default roles to the account
+        foreach ($this->rolesConfiguration['default'] as $roleIdentifier) {
+            $account->addRole($this->policyService->getRole($roleIdentifier));
+        }
+        
+        // map users dns to roles
+        foreach ($this->rolesConfiguration['userMapping'] as $roleIdentifier => $userDns) {
+            if (in_array($ldapSearchResult['dn'], $userDns)) {
+                $account->addRole($this->policyService->getRole($roleIdentifier));
             }
         }
+        
+        // map group dns to roles
+        $memberOf = $this->directoryService->getMemberOf($ldapSearchResult['dn']);
+        foreach ($this->rolesConfiguration['groupMapping'] as $roleIdentifier => $groupDns) {
+            if (!empty(array_intersect($memberOf, $groupDns))) {
+                $account->addRole($this->policyService->getRole($roleIdentifier));
+            }
+        }
+
+        // persist role changes
+        $this->accountRepository->update($account);
+    }
+
+    /**
+     * @param Account $account
+     * @param array $ldapSearchResult
+     * @return void
+     * @Flow\Signal
+     */
+    public function emitAccountCreated(Account $account, array $ldapSearchResult)
+    {
     }
 
     /**

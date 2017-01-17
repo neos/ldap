@@ -1,11 +1,18 @@
 Neos:
   Ldap:
     roles:
+      # default roles to give each user
       default: []
+#        - 'Neos.Neos:RestrictedEditor'
+      # map group memberships to roles
       groupMapping: []
+#        'Neos.Neos:Administrator':
+#          - 'CN=Administrators,OU=Groups,DC=domain,DC=tld'
+#        'Neos.Neos:Editor':
+#          - 'CN=Editors,OU=Groups,DC=domain,DC=tld'
+      # map certain users to roles
       userMapping: []
-    party: 
-      # this is an eel expression that should evaluate into an identifier that can be
-      # used in the membershipFilter option like (&(member=?)(objectClass=group))
-#      username: 'ldapUser.dn' # for ActiveDirectory provider
-    defaultContext: []
+#        'Neos.Neos:Administrator':
+#          - 'CN=Admin,OU=Users,DC=domain,DC=tld'
+#        'Neos.Neos:Editor':
+#          - 'CN=Mustermann,OU=Users,DC=domain,DC=tld'

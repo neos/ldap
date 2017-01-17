@@ -171,7 +171,7 @@ class DirectoryService
      * @return array
      * @throws Exception
      */
-    public function getGroupMembership($username)
+    public function getMemberOf($username)
     {
         $groups = array();
         $groupFilterOptions = Arrays::arrayMergeRecursiveOverrule(
