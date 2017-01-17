@@ -6,9 +6,10 @@ Neos:
           LdapProvider:
             provider: Neos\Ldap\Security\Authentication\Provider\LdapProvider
             providerOptions:
-              type: 'Ldap'
+              bindProvider: Neos\Ldap\Service\BindProvider\LdapBind
               host: localhost
               port: 389
+              
               baseDn: dc=my-domain,dc=com
 
               bind:

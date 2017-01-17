@@ -6,9 +6,10 @@ Neos:
           ActiveDirectoryProvider:
             provider: Neos\Ldap\Security\Authentication\Provider\LdapProvider
             providerOptions:
-              type: 'ActiveDirectory'
+              bindProvider: Neos\Ldap\Service\BindProvider\ActiveDirectoryBind
               host: localhost
               port: 389
+              
               baseDn: dc=my-domain,dc=com
 
               # All PHP Ldap options can be set here. Make the constant lowercase
