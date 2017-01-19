@@ -15,7 +15,6 @@ use Neos\Flow\Annotations as Flow;
 use Neos\Flow\Error\Exception;
 use Neos\Utility\Arrays;
 use Neos\Ldap\Service\BindProvider\BindProviderInterface;
-use Neos\Ldap\Utility\ServerStatusUtility;
 
 /**
  * A simple Ldap authentication service
