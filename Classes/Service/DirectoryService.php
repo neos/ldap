@@ -15,7 +15,6 @@ use Neos\Flow\Annotations as Flow;
 use Neos\Flow\Error\Exception;
 use Neos\Utility\Arrays;
 use Neos\Ldap\Service\BindProvider\BindProviderInterface;
-use Neos\Ldap\Utility\ServerStatusUtility;
 
 /**
  * A simple Ldap authentication service
@@ -200,16 +199,6 @@ class DirectoryService
         }
 
         return $groups;
-    }
-
-    /**
-     * Check if the server is online / can be reached
-     *
-     * @return boolean
-     */
-    public function isServerOnline()
-    {
-        return ServerStatusUtility::isServerOnline($this->options['host'], $this->options['port']);
     }
 
     /**

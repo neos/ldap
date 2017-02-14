@@ -21,6 +21,7 @@ Neos:
               # Example: LDAP_OPT_PROTOCOL_VERSION becomes protocol_version
               ldapOptions:
                 protocol_version: 3
+                network_timeout: 10
                 referrals: 0
 
               # ? will be replaced with the username provided
