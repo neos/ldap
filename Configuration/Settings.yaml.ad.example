@@ -11,8 +11,7 @@ Neos:
 
               baseDn: dc=my-domain,dc=com
 
-              bind:
-                provider: Neos\Ldap\Service\BindProvider\ActiveDirectoryBind
+              type: 'ActiveDirectory'
 
               # All PHP Ldap options can be set here. Make the constant lowercase
               # and remove the ldap_opt_ prefix.

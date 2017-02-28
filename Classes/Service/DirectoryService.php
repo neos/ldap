@@ -13,6 +13,8 @@ namespace Neos\Ldap\Service;
 
 use Neos\Flow\Annotations as Flow;
 use Neos\Flow\Error\Exception;
+use Neos\Ldap\Service\BindProvider\ActiveDirectoryBind;
+use Neos\Ldap\Service\BindProvider\LdapBind;
 use Neos\Utility\Arrays;
 use Neos\Ldap\Service\BindProvider\BindProviderInterface;
 
@@ -73,8 +75,11 @@ class DirectoryService
             return;
         }
 
-        $defaultClass = 'Neos\Ldap\Service\BindProvider\LdapBind';
-        $bindProviderClass = isset($this->options['bind']['provider']) ? $this->options['bind']['provider'] : $defaultClass;
+        $bindProviderClass = LdapBind::class;
+        $connectionType = Arrays::getValueByPath($this->options, 'type');
+        if ($connectionType === 'ActiveDirectory') {
+            $bindProviderClass = ActiveDirectoryBind::class;
+        }
         if (!class_exists($bindProviderClass)) {
             throw new Exception("Bind provider '$bindProviderClass' for the service '$this->name' could not be resolved.", 1327756744);
         }
