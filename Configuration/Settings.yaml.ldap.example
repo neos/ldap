@@ -6,15 +6,10 @@ Neos:
           LdapProvider:
             provider: Neos\Ldap\Security\Authentication\Provider\LdapProvider
             providerOptions:
-              type: 'Ldap'
               host: localhost
               port: 389
-              baseDn: dc=my-domain,dc=com
 
-              group:
-                membershipFilter: '(&(objectClass=posixGroup)(memberUid=%s))'
-                dn: 'dn'
-                cn: 'cn'
+              baseDn: dc=my-domain,dc=com
 
               # How to authenticate towards the server. Normally this is a given
               # service account and password. Other options are also available,
@@ -31,12 +26,31 @@ Neos:
                 protocol_version: 3
                 network_timeout: 10
 
-              # ? will be replaced with the username provided
               filter:
-                account: '(uid=?)'
+                # %s will be replaced with the username / dn provided
+                account: '(uid=%s)'
+                memberOf: '(&(objectClass=posixGroup)(memberUid=%s))'
 
                 # this will use the filter with domain, set it to yes to remove it for search
                 ignoreDomain: TRUE
 
               # will be prefixed to a given username if no other domain was specified
               domain: 'MY-DOMAIN'
+
+Neos:
+  Ldap:
+    roles:
+      default: []
+        - 'Neos.Neos:RestrictedEditor'
+      # map group memberships to roles
+      groupMapping: []
+        'Neos.Neos:Administrator':
+          - 'CN=Administrators,OU=Groups,DC=domain,DC=tld'
+        'Neos.Neos:Editor':
+          - 'CN=Editors,OU=Groups,DC=domain,DC=tld'
+      # map certain users to roles
+      userMapping: []
+        'Neos.Neos:Administrator':
+          - 'CN=Admin,OU=Users,DC=domain,DC=tld'
+        'Neos.Neos:Editor':
+          - 'CN=Mustermann,OU=Users,DC=domain,DC=tld'

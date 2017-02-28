@@ -4,8 +4,3 @@ Neos:
       default: []
       groupMapping: []
       userMapping: []
-    party: 
-      # this is an eel expression that should evaluate into an identifier that can be
-      # used in the membershipFilter option like (&(member=?)(objectClass=group))
-#      username: 'ldapUser.dn' # for ActiveDirectory provider
-    defaultContext: []
