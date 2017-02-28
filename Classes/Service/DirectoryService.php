@@ -91,6 +91,29 @@ class DirectoryService
     }
 
     /**
+     * Binds the connection if configured, this is required as for example Active Directory returns a
+     * valid link identifier on ldap_connect() even if anonymous connections are not allowed, while
+     * OpenLDAP will return a fully initialized connection.
+     *
+     * Call this method if you need to connect to the directory service for reading, like while
+     * importing users.
+     */
+    public function bindConnection()
+    {
+        $this->ldapConnect();
+
+        $anonymousBind = Arrays::getValueByPath($this->options, 'bind.anonymous');
+        if ($anonymousBind === true) {
+            return;
+        }
+
+        $bindDn = Arrays::getValueByPath($this->options, 'bind.dn');
+        $bindPassword = Arrays::getValueByPath($this->options, 'bind.password');
+
+        $this->bindProvider->bind($bindDn, $bindPassword);
+    }
+
+    /**
      * Set the Ldap options configured in the settings.
      *
      * Loops over the ldapOptions array, and finds the corresponding Ldap option by prefixing
@@ -128,7 +151,6 @@ class DirectoryService
             $this->options['baseDn'],
             sprintf($this->options['filter']['account'], $this->bindProvider->filterUsername($username))
         );
-
         if (!$searchResult) {
             throw new Exception('Error during Ldap user search: ' . ldap_errno($this->bindProvider->getLinkIdentifier()), 1443798372);
         }
