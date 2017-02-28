@@ -13,6 +13,7 @@ namespace Neos\Ldap\Service\BindProvider;
 
 use Neos\Flow\Annotations as Flow;
 use Neos\Flow\Error\Exception;
+use Neos\Utility\Arrays;
 
 /**
  * Bind to an OpenLdap Server
@@ -47,15 +48,21 @@ class LdapBind extends AbstractBindProvider
      */
     public function bind($username, $password)
     {
+        $bindDn = Arrays::getValueByPath($this->options, 'bind.dn');
         if (!empty($username) && !empty($password)) {
             // if credentials are given, use them to authenticate
-            $this->bindWithDn(str_replace('?', $username, $this->options['bind']['dn']), $password);
+            $this->bindWithDn(sprintf($bindDn, $username), $password);
+            return;
+        }
 
-        } elseif (isset($this->options['bind']['password'])) {
+        $bindPassword = Arrays::getValueByPath($this->options, 'bind.password');
+        if (!empty($bindPassword)) {
             // if the settings specify a bind password, we are safe to assume no anonymous authentication is needed
-            $this->bindWithDn($this->options['bind']['dn'], $this->options['bind']['password']);
+            $this->bindWithDn($bindDn, $bindPassword);
+        }
 
-        } elseif ($this->options['bind']['anonymous']) {
+        $anonymousBind = Arrays::getValueByPath($this->options, 'bind.anonymous');
+        if ($anonymousBind === true) {
             // if allowed, bind without username or password
             $this->bindAnonymously();
         }
