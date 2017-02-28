@@ -67,7 +67,7 @@ abstract class AbstractBindProvider implements BindProviderInterface
      *
      * @param string $userDn The DN of the user.
      * @param string $password The user's password.
-     * @throws Exception
+     * @throws \Exception
      */
     protected function bindWithDn($userDn, $password)
     {
@@ -78,14 +78,14 @@ abstract class AbstractBindProvider implements BindProviderInterface
         }
 
         if (!$bindIsSuccessful) {
-            throw new Exception('Failed to bind with DN: "' . $userDn . '"', 1327763970);
+            throw new \Exception('Failed to bind with DN: "' . $userDn . '"', 1327763970);
         }
     }
 
     /**
      * Bind anonymously to the directory server. Returns void but throws exception on failure.
      *
-     * @throws Exception
+     * @throws \Exception
      */
     protected function bindAnonymously()
     {
@@ -96,7 +96,7 @@ abstract class AbstractBindProvider implements BindProviderInterface
         }
 
         if (!$bindIsSuccessful) {
-            throw new Exception('Failed to bind anonymously', 1327763970);
+            throw new \Exception('Failed to bind anonymously', 1327763970);
         }
     }
 
@@ -106,7 +106,7 @@ abstract class AbstractBindProvider implements BindProviderInterface
      *
      * @param string $dn The DN of the user.
      * @param string $password The user's password.
-     * @throws Exception
+     * @throws \Exception
      */
     public function verifyCredentials($dn, $password)
     {
