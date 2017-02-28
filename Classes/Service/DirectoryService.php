@@ -13,6 +13,8 @@ namespace Neos\Ldap\Service;
 
 use Neos\Flow\Annotations as Flow;
 use Neos\Flow\Error\Exception;
+use Neos\Ldap\Service\BindProvider\ActiveDirectoryBind;
+use Neos\Ldap\Service\BindProvider\LdapBind;
 use Neos\Utility\Arrays;
 use Neos\Ldap\Service\BindProvider\BindProviderInterface;
 
@@ -47,10 +49,15 @@ class DirectoryService
     {
         $this->name = $name;
         $this->options = $options;
+    }
 
-        if (!extension_loaded('ldap')) {
-            throw new Exception('PHP is not compiled with Ldap support', 1305406047);
-        }
+    /**
+     * @return resource
+     */
+    public function getConnection()
+    {
+        $this->ldapConnect();
+        return $this->bindProvider->getLinkIdentifier();
     }
 
     /**
@@ -68,22 +75,23 @@ class DirectoryService
             return;
         }
 
-        $bindProviderClassName = 'Neos\Ldap\Service\BindProvider\\' . $this->options['type'] . 'Bind';
-        if (!class_exists($bindProviderClassName)) {
-            throw new Exception('An bind provider for the service "' . $this->options['type'] . '" could not be resolved. Make sure it is a valid bind provider name!', 1327756744);
+        $bindProviderClass = LdapBind::class;
+        $connectionType = Arrays::getValueByPath($this->options, 'type');
+        if ($connectionType === 'ActiveDirectory') {
+            $bindProviderClass = ActiveDirectoryBind::class;
+        }
+        if (!class_exists($bindProviderClass)) {
+            throw new Exception("Bind provider '$bindProviderClass' for the service '$this->name' could not be resolved.", 1327756744);
         }
 
-        try {
-            $connection = ldap_connect($this->options['host'], $this->options['port']);
-            $this->bindProvider = new $bindProviderClassName($connection, $this->options);
-            $this->setLdapOptions();
-        } catch (\Exception $exception) {
-            throw new Exception('Could not connect to Ldap server', 1326985286);
-        }
+        $connection = ldap_connect($this->options['host'], $this->options['port']);
+        $this->bindProvider = new $bindProviderClass($connection, $this->options);
+
+        $this->setLdapOptions();
     }
 
     /**
-     * Set the Ldap options configured in the settings
+     * Set the Ldap options configured in the settings.
      *
      * Loops over the ldapOptions array, and finds the corresponding Ldap option by prefixing
      * LDAP_OPT_ to the uppercased array key.
@@ -97,11 +105,9 @@ class DirectoryService
      */
     protected function setLdapOptions()
     {
-        if (!empty($this->options['ldapOptions']) && is_array($this->options['ldapOptions'])) {
-            foreach ($this->options['ldapOptions'] as $ldapOption => $ldapOptionValue) {
-                $constantName = 'LDAP_OPT_' . strtoupper($ldapOption);
-                ldap_set_option($this->bindProvider->getLinkIdentifier(), constant($constantName), $ldapOptionValue);
-            }
+        foreach ($this->options['ldapOptions'] as $ldapOption => $value) {
+            $constantName = 'LDAP_OPT_' . strtoupper($ldapOption);
+            ldap_set_option($this->bindProvider->getLinkIdentifier(), constant($constantName), $value);
         }
     }
 
@@ -115,99 +121,24 @@ class DirectoryService
      */
     public function authenticate($username, $password)
     {
-        try {
-            $this->ldapConnect();
-            $this->bindProvider->bind($username, $password);
-            $entries = $this->getUserEntries($username);
-            if (!empty($entries)) {
-                $this->bindProvider->verifyCredentials($entries[0]['dn'], $password);
-                // get all entries in the second run in the case of anonymous bind
-                $anonymousBind = Arrays::getValueByPath($this->options, 'bind.anonymous');
-                if ($anonymousBind === true) {
-                    $entries = $this->getUserEntries($username);
-                } else {
-                    $this->bindProvider->bind($username, $password);
-                }
-            }
-            return $entries[0];
-        } catch (\Exception $exception) {
-            throw new Exception('Error during Ldap server authentication: ' . $exception->getMessage(), 1323167213);
-        }
-    }
+        $this->bind($username, $password);
 
-    /**
-     * Get the user entities from the Ldap server
-     * At least the dn should be returned.
-     *
-     * @param $username
-     * @return array
-     * @throws Exception
-     */
-    public function getUserEntries($username)
-    {
         $searchResult = @ldap_search(
             $this->bindProvider->getLinkIdentifier(),
             $this->options['baseDn'],
-            str_replace(
-                '?',
-                $this->bindProvider->filterUsername($username),
-                $this->options['filter']['account']
-            )
+            sprintf($this->options['filter']['account'], $this->bindProvider->filterUsername($username))
         );
-        if ($searchResult) {
-            $entries = ldap_get_entries($this->bindProvider->getLinkIdentifier(), $searchResult);
 
-            if ($entries['count'] === 1) {
-                return $entries;
-            }
-        } else {
+        if (!$searchResult) {
             throw new Exception('Error during Ldap user search: ' . ldap_errno($this->bindProvider->getLinkIdentifier()), 1443798372);
         }
-    }
 
-    /**
-     * @param string $username
-     * @return array
-     * @throws Exception
-     */
-    public function getGroupMembership($username)
-    {
-        $groups = array();
-        $groupFilterOptions = Arrays::arrayMergeRecursiveOverrule(
-            array('dn' => 'dn', 'cn' => 'cn'),
-            isset($this->options['group']) && is_array($this->options['group']) ? $this->options['group'] : array()
-        );
-
-        if (!isset($groupFilterOptions['membershipFilter'])) {
-            return $groups;
+        $entries = ldap_get_entries($this->bindProvider->getLinkIdentifier(), $searchResult);
+        if (empty($entries) || !isset($entries[0])) {
+            throw new Exception('Error while authenticating: authenticated user could not be fetched from the directory', 1488289104);
         }
 
-        $searchResult = @ldap_search(
-            $this->bindProvider->getLinkIdentifier(),
-            $this->options['baseDn'],
-            sprintf($groupFilterOptions['membershipFilter'], $this->bindProvider->filterUsername($username))
-        );
-
-        if ($searchResult) {
-            foreach (ldap_get_entries($this->bindProvider->getLinkIdentifier(), $searchResult) as $group) {
-                if (is_array($group) && isset($group[$groupFilterOptions['dn']])) {
-                    $groups[$group[$groupFilterOptions['dn']]] = $group[$groupFilterOptions['cn']][0];
-                }
-            }
-        } else {
-            throw new Exception('Error during Ldap group search: ' . ldap_errno($this->bindProvider->getLinkIdentifier()), 1443476083);
-        }
-
-        return $groups;
-    }
-
-    /**
-     * @return resource
-     */
-    public function getConnection()
-    {
-        $this->ldapConnect();
-        return $this->bindProvider->getLinkIdentifier();
+        return $entries[0];
     }
 
     /**
@@ -221,5 +152,31 @@ class DirectoryService
         $this->ldapConnect();
         $this->bindProvider->bind($username, $password);
     }
-}
 
+    /**
+     * @param string $dn  User or group DN.
+     * @return array group  DN => CN mapping
+     * @throws Exception
+     */
+    public function getMemberOf($dn)
+    {
+        $searchResult = @ldap_search(
+            $this->bindProvider->getLinkIdentifier(),
+            $this->options['baseDn'],
+            sprintf($this->options['filter']['memberOf'], $dn)
+        );
+
+        if (!$searchResult) {
+            throw new Exception('Error during Ldap group search: ' . ldap_errno($this->bindProvider->getLinkIdentifier()), 1443476083);
+        }
+
+        return array_map(
+            function (array $memberOf) { return $memberOf['dn']; },
+            array_filter(
+                ldap_get_entries($this->bindProvider->getLinkIdentifier(), $searchResult),
+                function ($element) { return is_array($element); }
+            )
+        );
+    }
+
+}
