@@ -42,6 +42,8 @@ abstract class AbstractBindProvider implements BindProviderInterface
     }
 
     /**
+     * Return the ldap connection identifier.
+     *
      * @return resource
      */
     public function getLinkIdentifier()
@@ -50,15 +52,65 @@ abstract class AbstractBindProvider implements BindProviderInterface
     }
 
     /**
-     * Return the filtered username for directory search
-     * overwrite for special needs
+     * Return the filtered username for directory search.
      *
      * @param string $username
      * @return string
      */
-    public function getFilteredUsername($username)
+    public function filterUsername($username)
     {
         return $username;
+    }
+
+    /**
+     * Bind to the directory server. Returns void but throws exception on failure.
+     *
+     * @param string $userDn The DN of the user.
+     * @param string $password The user's password.
+     * @throws Exception
+     */
+    protected function bindWithDn($userDn, $password)
+    {
+        try {
+            $bindIsSuccessful = ldap_bind($this->linkIdentifier, $userDn, $password);
+        } catch (\Exception $exception) {
+            $bindIsSuccessful = false;
+        }
+
+        if (!$bindIsSuccessful) {
+            throw new Exception('Failed to bind with DN: "' . $userDn . '"', 1327763970);
+        }
+    }
+
+    /**
+     * Bind anonymously to the directory server. Returns void but throws exception on failure.
+     *
+     * @throws Exception
+     */
+    protected function bindAnonymously()
+    {
+        try {
+            $bindIsSuccessful = ldap_bind($this->linkIdentifier);
+        } catch (\Exception $exception) {
+            $bindIsSuccessful = false;
+        }
+
+        if (!$bindIsSuccessful) {
+            throw new Exception('Failed to bind anonymously', 1327763970);
+        }
+    }
+
+    /**
+     * Verify the given user is known to the directory server and has valid credentials.
+     * Does not return output but throws an exception if the credentials are invalid.
+     *
+     * @param string $dn The DN of the user.
+     * @param string $password The user's password.
+     * @throws Exception
+     */
+    public function verifyCredentials($dn, $password)
+    {
+        $this->bindWithDn($dn, $password);
     }
 
 }
