@@ -23,9 +23,7 @@ class ActiveDirectoryBind extends AbstractBindProvider
 {
 
     /**
-     * Bind to an ActiveDirectory server
-     *
-     * Prefix the username with a domain if configured.
+     * Bind to an ActiveDirectory server. Prefixes the username with a domain if configured.
      *
      * @param string $username
      * @param string $password
@@ -33,44 +31,19 @@ class ActiveDirectoryBind extends AbstractBindProvider
      */
     public function bind($username, $password)
     {
-        try {
-            ldap_bind($this->linkIdentifier, $this->getUsername($username), $password);
-        } catch (\Exception $exception) {
-            throw new Exception('Could not bind to ActiveDirectory server. Error was: ' . $exception->getMessage(), 1327937215);
-        }
-    }
-
-    /**
-     * @param string $username
-     * @return string
-     */
-    protected function getUsername($username)
-    {
         if (!empty($this->options['domain'])) {
             if (!strpos($username, '\\')) {
                 $username = $this->options['domain'] . '\\' . $username;
             }
         }
+
         if (!empty($this->options['usernameSuffix'])) {
             if (!strpos($username, '@')) {
                 $username = $username . '@' . $this->options['usernameSuffix'];
             }
         }
-        return $username;
-    }
 
-    /**
-     * @param string $username
-     * @param string $password
-     * @throws Exception
-     */
-    public function verifyCredentials($username, $password)
-    {
-        try {
-            ldap_bind($this->linkIdentifier, $this->getUsername($username), $password);
-        } catch (\Exception $exception) {
-            throw new Exception('Could not verify credentials for dn: "' . $username . '"', 1327763970);
-        }
+        $this->bindWithDn($username, $password);
     }
 
     /**
@@ -79,12 +52,11 @@ class ActiveDirectoryBind extends AbstractBindProvider
      * @param string $username
      * @return string
      */
-    public function getFilteredUsername($username)
+    public function filterUsername($username)
     {
         if (!empty($this->options['domain'])) {
-            $usernameParts = explode('\\', $username);
-            $usernameWithoutDomain = array_pop($usernameParts);
-            return $this->options['filter']['ignoreDomain'] ? $usernameWithoutDomain : addcslashes($username, '\\');
+            $usernameWithoutDomain = array_pop(explode('\\', $username));
+            $username = $this->options['filter']['ignoreDomain'] ? $usernameWithoutDomain : addcslashes($username, '\\');
         }
         return $username;
     }

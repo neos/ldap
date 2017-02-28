@@ -18,7 +18,7 @@ interface BindProviderInterface
 {
 
     /**
-     * The link identifier to connect to the Ldap server
+     * The link identifier to connect to the Ldap server.
      *
      * @return resource
      */
@@ -29,22 +29,27 @@ interface BindProviderInterface
      *
      * @param $username
      * @param $password
+     * @throws Exception
      */
     public function bind($username, $password);
 
     /**
-     * Bind by dn and password
+     * Verify the given user is known to the directory server and has valid credentials.
+     * Does not return output but throws an exception if the credentials are invalid.
      *
-     * @param $dn
-     * @param $password
+     * @param string $dn The DN of the user.
+     * @param string $password The user's password.
+     * @throws Exception
      */
     public function verifyCredentials($dn, $password);
 
     /**
-     * Get a filtered username
+     * Get a filtered username.
      *
      * @param $username
+     * @return string
      */
-    public function getFilteredUsername($username);
+    public function filterUsername($username);
+
 }
 
