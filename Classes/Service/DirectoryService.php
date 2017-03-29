@@ -105,6 +105,10 @@ class DirectoryService
      */
     protected function setLdapOptions()
     {
+        if (!isset($this->options['ldapOptions']) || !is_array($this->options['ldapOptions'])) {
+            return;
+        }
+
         foreach ($this->options['ldapOptions'] as $ldapOption => $value) {
             $constantName = 'LDAP_OPT_' . strtoupper($ldapOption);
             ldap_set_option($this->bindProvider->getLinkIdentifier(), constant($constantName), $value);
