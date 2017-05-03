@@ -37,10 +37,10 @@ class LdapBind extends AbstractBindProvider
      *       dn: 'uid=admin,dc=example,dc=com'
      *       password: 'secret'
      *
-     * Settings example for binding with user ID and password (the ? will be replaced by user ID):
+     * Settings example for binding with user ID and password (the %s will be replaced by user ID):
      *   ...
      *   bind:
-     *       dn: 'uid=?,ou=Users,dc=example,dc=com'
+     *       dn: 'uid=%s,ou=Users,dc=example,dc=com'
      *
      * @param string $username
      * @param string $password
