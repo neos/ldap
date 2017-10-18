@@ -49,16 +49,11 @@ class LdapBind extends AbstractBindProvider
     public function bind($username, $password)
     {
         $bindDn = Arrays::getValueByPath($this->options, 'bind.dn');
-        if (!empty($username) && !empty($password)) {
-            // if credentials are given, use them to authenticate
-            $this->bindWithDn(sprintf($bindDn, $username), $password);
-            return;
-        }
-
         $bindPassword = Arrays::getValueByPath($this->options, 'bind.password');
-        if (!empty($bindPassword)) {
-            // if the settings specify a bind password, we are safe to assume no anonymous authentication is needed
-            $this->bindWithDn($bindDn, $bindPassword);
+        if (!empty($username) && !empty($bindPassword)) {
+            // if credentials are given, use them to authenticate
+            $this->bindWithDn(sprintf($bindDn, $username), $bindPassword);
+            return;
         }
 
         $anonymousBind = Arrays::getValueByPath($this->options, 'bind.anonymous');
