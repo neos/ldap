@@ -26,7 +26,7 @@ use Neos\Ldap\Service\DirectoryService;
  *
  * @Flow\Scope("prototype")
  */
-class LdapProvider extends PersistedUsernamePasswordProvider
+class PersistedUsernamePasswordProvider extends PersistedUsernamePasswordProvider
 {
 
     /**

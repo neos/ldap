@@ -4,7 +4,7 @@ Neos:
       authentication:
         providers:
           ActiveDirectoryProvider:
-            provider: Neos\Ldap\Security\Authentication\Provider\LdapProvider
+            provider: Neos\Ldap\Security\Authentication\Provider\PersistedUsernamePasswordProvider
             providerOptions:
               host: localhost
               port: 389
@@ -23,8 +23,8 @@ Neos:
 
               filter:
                 # %s will be replaced with the username / dn provided
-                account: '(samaccountname=%s)'
-                memberOf: '(&(member=%s)(objectClass=group))'
+                account: '(uid=%s)'
+                memberOf: '(&(objectClass=posixGroup)(memberUid=%s))'
 
                 # this will use the filter with domain, set it to yes to remove it for search
                 ignoreDomain: FALSE

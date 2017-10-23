@@ -1,4 +1,5 @@
 <?php
+
 namespace Neos\Ldap\Service;
 
 /*
@@ -142,6 +143,14 @@ class DirectoryService
             throw new Exception('Error while authenticating: authenticated user could not be fetched from the directory', 1488289104);
         }
 
+        $userDN = 'uid=' . $username . ',' . $this->options['baseDn'];
+        $ldapBindUser = ldap_bind($this->bindProvider->getLinkIdentifier(), $userDN, $password);
+
+        if (!$ldapBindUser) {
+            throw new Exception('Wrong credentials', 1488289104);
+        }
+
+
         return $entries[0];
     }
 
@@ -158,7 +167,7 @@ class DirectoryService
     }
 
     /**
-     * @param string $dn  User or group DN.
+     * @param string $dn User or group DN.
      * @return array group  DN => CN mapping
      * @throws Exception
      */
@@ -175,10 +184,14 @@ class DirectoryService
         }
 
         return array_map(
-            function (array $memberOf) { return $memberOf['dn']; },
+            function (array $memberOf) {
+                return $memberOf['dn'];
+            },
             array_filter(
                 ldap_get_entries($this->bindProvider->getLinkIdentifier(), $searchResult),
-                function ($element) { return is_array($element); }
+                function ($element) {
+                    return is_array($element);
+                }
             )
         );
     }

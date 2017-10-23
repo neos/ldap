@@ -1,4 +1,5 @@
 <?php
+
 namespace Neos\Ldap\Service\BindProvider;
 
 /*
@@ -71,11 +72,13 @@ abstract class AbstractBindProvider implements BindProviderInterface
      */
     protected function bindWithDn($userDn, $password)
     {
+
         try {
             $bindIsSuccessful = ldap_bind($this->linkIdentifier, $userDn, $password);
         } catch (\Exception $exception) {
             $bindIsSuccessful = false;
         }
+
 
         if (!$bindIsSuccessful) {
             throw new \Exception('Failed to bind with DN: "' . $userDn . '"', 1327763970);
