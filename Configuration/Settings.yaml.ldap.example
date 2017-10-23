@@ -40,16 +40,16 @@ Neos:
 Neos:
   Ldap:
     roles:
-      default: []
-        - 'Neos.Neos:RestrictedEditor'
+      default:
+        - 'Neos.Neos:Editor'
       # map group memberships to roles
-      groupMapping: []
+      groupMapping:
         'Neos.Neos:Administrator':
           - 'CN=Administrators,OU=Groups,DC=domain,DC=tld'
         'Neos.Neos:Editor':
           - 'CN=Editors,OU=Groups,DC=domain,DC=tld'
       # map certain users to roles
-      userMapping: []
+      userMapping:
         'Neos.Neos:Administrator':
           - 'CN=Admin,OU=Users,DC=domain,DC=tld'
         'Neos.Neos:Editor':
