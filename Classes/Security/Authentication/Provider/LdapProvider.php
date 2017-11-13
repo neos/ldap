@@ -134,11 +134,20 @@ class LdapProvider extends PersistedUsernamePasswordProvider
      */
     protected function setRoles(Account $account, array $ldapSearchResult)
     {
+        $this->resetRoles($account);
         $this->setDefaultRoles($account);
         $this->setRolesMappedToUserDn($account, $ldapSearchResult);
         $this->setRolesBasedOnGroupMembership($account, $ldapSearchResult);
 
         $this->accountRepository->update($account);
+    }
+
+    /**
+     * @param Account $account
+     */
+    protected function resetRoles(Account $account)
+    {
+        $account->setRoles([]);
     }
 
     /**
