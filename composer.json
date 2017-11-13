@@ -7,7 +7,8 @@
     ],
     "require": {
         "neos/flow": "^4.0",
-        "ext-ldap": "*"
+        "ext-ldap": "*",
+        "symfony/ldap": "^3.3"
     },
     "replace": {
         "typo3/ldap": "self.version"
@@ -18,6 +19,9 @@
         }
     },
     "extra": {
+        "neos": {
+            "package-key": "Neos.Ldap"
+        },
         "branch-alias": {
             "dev-master": "1.0.x-dev"
         }
