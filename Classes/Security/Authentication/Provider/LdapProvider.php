@@ -89,7 +89,7 @@ class LdapProvider extends PersistedUsernamePasswordProvider
             // Retrieve or create account for the credentials
             $account = $this->accountRepository->findActiveByAccountIdentifierAndAuthenticationProviderName($credentials['username'], $this->name);
             if ($account === null) {
-                $account = $this->createAccountForCredentials($credentials);
+                $account = $this->createAccount($credentials, $ldapUser);
                 $this->emitAccountCreated($account, $ldapUser);
             }
 
@@ -115,7 +115,7 @@ class LdapProvider extends PersistedUsernamePasswordProvider
      * @param array $credentials array containing username and password
      * @return Account
      */
-    protected function createAccountForCredentials(array $credentials)
+    protected function createAccount(array $credentials, array $ldapSearchResult)
     {
         $account = new Account();
         $account->setAccountIdentifier($credentials['username']);

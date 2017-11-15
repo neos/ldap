@@ -3,48 +3,46 @@ Neos:
     security:
       authentication:
         providers:
-          ActiveDirectoryProvider:
-            provider: Neos\Ldap\Security\Authentication\Provider\LdapProvider
+          'Neos.Neos:Backend':
+            provider: Neos\Ldap\Security\Authentication\Provider\NeosBackendLdapProvider
             providerOptions:
-              host: localhost
-              port: 389
+
+              connection:
+                options:
+                  host: localhost
+                  port: 389
+                  options:
+                    protocol_version: 3
+                    network_timeout: 10
+                    referrals: 0
+                bind:
+                  dn: 'username@domain.com'
+                  #dn: 'DOMAIN\user'
+                  password: 'secret'
 
               baseDn: dc=my-domain,dc=com
 
-              type: 'ActiveDirectory'
+              attributesFilter:
+                account: ['dn']
+                group: ['dn']
 
-              # All PHP Ldap options can be set here. Make the constant lowercase
-              # and remove the ldap_opt_ prefix.
-              # Example: LDAP_OPT_PROTOCOL_VERSION becomes protocol_version
-              ldapOptions:
-                protocol_version: 3
-                network_timeout: 10
-                referrals: 0
-
-              filter:
-                # %s will be replaced with the username / dn provided
+              query:
                 account: '(samaccountname=%s)'
-                memberOf: '(&(member=%s)(objectClass=group))'
-
-                # this will use the filter with domain, set it to yes to remove it for search
-                ignoreDomain: FALSE
-
-              # will be prefixed to a given username if no other domain was specified
-              domain: 'MY-DOMAIN'
+                memberOf: '(member:1.2.840.113556.1.4.1941:=%s)'
 
 Neos:
   Ldap:
     roles:
-      default: []
+      default:
         - 'Neos.Neos:RestrictedEditor'
       # map group memberships to roles
-      groupMapping: []
+      groupMapping:
         'Neos.Neos:Administrator':
           - 'CN=Administrators,OU=Groups,DC=domain,DC=tld'
         'Neos.Neos:Editor':
           - 'CN=Editors,OU=Groups,DC=domain,DC=tld'
       # map certain users to roles
-      userMapping: []
+      userMapping:
         'Neos.Neos:Administrator':
           - 'CN=Admin,OU=Users,DC=domain,DC=tld'
         'Neos.Neos:Editor':

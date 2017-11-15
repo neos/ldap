@@ -13,6 +13,7 @@ namespace Neos\Ldap\Service;
 
 use Neos\Flow\Annotations as Flow;
 use Neos\Flow\Error\Exception;
+use Neos\Utility\Arrays;
 use Symfony\Component\Ldap\Adapter\ExtLdap\Adapter;
 use Symfony\Component\Ldap\Ldap;
 
@@ -69,12 +70,16 @@ class DirectoryService
             $this->ldapConnect();
         }
 
-        $this->readConnection = clone $this->connection;
-        if (!empty($this->options['connection']['bind'])) {
-            $this->readConnection->bind(
-                $this->options['connection']['bind']['dn'],
-                $this->options['connection']['bind']['password']
-            );
+        try {
+            $this->readConnection = clone $this->connection;
+            if (!empty($this->options['connection']['bind'])) {
+                $this->readConnection->bind(
+                    $this->options['connection']['bind']['dn'],
+                    $this->options['connection']['bind']['password']
+                );
+            }
+        } catch (\Exception $exception) {
+            \Neos\Flow\var_dump($exception, 'bind exception');
         }
 
         return $this->readConnection;
@@ -113,7 +118,7 @@ class DirectoryService
             ->query(
                 $this->options['baseDn'],
                 sprintf($this->options['query']['account'], $username),
-                ['filter' => $this->options['filter']['account']]
+                ['filter' => $this->options['attributesFilter']['account']]
             )
             ->execute()
             ->toArray();
@@ -122,9 +127,17 @@ class DirectoryService
             throw new \Exception('User not found');
         }
 
-        $this->connection->bind($result[0]->getDn(), $password);
+        try {
+            $this->connection->bind($result[0]->getDn(), $password);
+        } catch (\Exception $exception) {
+            \Neos\Flow\var_dump($exception);
+            die();
+        }
 
-        $userData = ['dn' => $result[0]->getDn()];
+        $userData = Arrays::arrayMergeRecursiveOverrule(
+            $result[0]->getAttributes(),
+            ['dn' => $result[0]->getDn()]
+        );
 
         return $userData;
     }
@@ -141,7 +154,7 @@ class DirectoryService
                 ->query(
                     $this->options['baseDn'],
                     sprintf($this->options['query']['memberOf'], $dn),
-                    ['filter' => $this->options['filter']['group']]
+                    ['filter' => $this->options['attributesFilter']['group']]
                 )
                 ->execute()
                 ->toArray();
