@@ -15,6 +15,7 @@ use Neos\Eel\CompilingEvaluator;
 use Neos\Eel\Context;
 use Neos\Flow\Annotations as Flow;
 use Neos\Flow\Security\Account;
+use Neos\Neos\Domain\Service\UserService;
 use Neos\Utility\Arrays;
 
 /**
@@ -31,37 +32,39 @@ class NeosBackendLdapProvider extends LdapProvider
     protected $eelEvaluator;
 
     /**
-     * Create a new account for the given credentials. Return null if you
-     * do not want to create a new account, that is, only authenticate
-     * existing accounts from the database and fail on new logins.
-     *
-     * @param array $credentials array containing username and password
-     * @param array $ldapSearchResult
-     * @return Account
+     * @Flow\Inject
+     * @var UserService
      */
-    protected function createAccount(array $credentials, array $ldapSearchResult)
+    protected $userService;
+
+    /**
+     * @inheritdoc
+     */
+    protected function createAccount(array $credentials, array $ldapUserData)
     {
         $mapping = Arrays::arrayMergeRecursiveOverrule(
             [
                 'firstName' => 'user.givenName[0]',
-                'lastName' => 'user.sn[0]'
+                'lastName' => 'user.sn[0]',
             ],
-            isset($this->options['mapping']) ? $this->options['mapping'] : []
+            $this->options['mapping'] ?? []
         );
-
-        $eelContext = new Context(['user' => $ldapSearchResult]);
+        $eelContext = new Context(['user' => $ldapUserData]);
 
         try {
             $firstName = $this->eelEvaluator->evaluate($mapping['firstName'], $eelContext);
+        } catch (\Exception $exception) {
+            // todo: logging
+            $firstName = 'none';
+        }
+        try {
             $lastName = $this->eelEvaluator->evaluate($mapping['lastName'], $eelContext);
         } catch (\Exception $exception) {
-            // todo : add logging
-            $firstName = 'none';
+            // todo: logging
             $lastName = 'none';
         }
 
-        $userService = new \Neos\Neos\Domain\Service\UserService();
-        $user = $userService->createUser(
+        $user = $this->userService->createUser(
             $credentials['username'],
             '',
             $firstName,
@@ -69,7 +72,6 @@ class NeosBackendLdapProvider extends LdapProvider
             [],
             $this->name
         );
-
         return $user->getAccounts()->get(0);
     }
 }

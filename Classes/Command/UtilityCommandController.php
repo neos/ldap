@@ -11,12 +11,17 @@ namespace Neos\Ldap\Command;
  * source code.
  */
 
-use Symfony\Component\Yaml\Yaml;
 use Neos\Flow\Annotations as Flow;
 use Neos\Flow\Cli\CommandController;
+use Neos\Flow\Mvc\Exception\StopActionException;
+use Neos\Flow\Security\Exception\MissingConfigurationException;
+use Neos\Ldap\Service\DirectoryService;
 use Neos\Utility\Arrays;
 use Neos\Utility\Files;
-use Neos\Ldap\Service\DirectoryService;
+use Symfony\Component\Ldap\Entry;
+use Symfony\Component\Ldap\Exception\ConnectionException;
+use Symfony\Component\Yaml\Exception\ParseException;
+use Symfony\Component\Yaml\Yaml;
 
 /**
  * Command controller to test settings and query the directory
@@ -25,208 +30,180 @@ class UtilityCommandController extends CommandController
 {
     /**
      * @Flow\InjectConfiguration(path="security.authentication.providers", package="Neos.Flow")
-     * @var array
+     * @var mixed[][]
      */
     protected $authenticationProvidersConfiguration;
 
     /**
-     * @var array
-     */
-    protected $options;
-
-    /**
-     * Try authenticating a user using a DirectoryService that's connected to a directory
-     *
-     * @param string $username The username to authenticate
-     * @param string $password The password to use while authenticating
-     * @param string $providerName Name of the authentication provider to use
-     * @param string $settingsFile Path to a yaml file containing the settings to use for testing purposes
-     *
-     * @return void
-     */
-    public function authenticateCommand($username, $password, $providerName = null, $settingsFile = null)
-    {
-        $directoryService = $this->getDirectoryService($providerName, $settingsFile);
-
-        try {
-            $directoryService->authenticate($username, $password);
-            $this->outputLine('Successfully authenticated %s with given password', [$username]);
-        } catch (\Exception $exception) {
-            $this->outputLine($exception->getMessage());
-            $this->quit(1);
-        }
-    }
-
-    /**
      * Simple bind command to test if a bind is possible at all
      *
-     * @param string $username Username to be used while binding
-     * @param string $password Password to be used while binding
-     * @param string $providerName Name of the authentication provider to use
-     * @param string $settingsFile Path to a yaml file containing the settings to use for testing purposes
+     * @param string|null $username Username to be used while binding
+     * @param string|null $password Password to be used while binding
+     * @param string|null $providerName Name of the authentication provider to use
+     * @param string|null $settingsFile Path to a yaml file containing the settings to use for testing purposes
      * @return void
+     * @throws StopActionException
      */
-    public function bindCommand($username = null, $password = null, $providerName = null, $settingsFile = null)
-    {
-        $directoryService = $this->getDirectoryService($providerName, $settingsFile);
-
+    public function bindCommand(
+        string $username = null,
+        string $password = null,
+        string $providerName = null,
+        string $settingsFile = null
+    ) {
+        $options = $this->getOptions($providerName, $settingsFile);
+        $bindDn = isset($options['bind']['dn'])
+            ? sprintf($options['bind']['dn'], $username ?? '')
+            : null
+        ;
+        $message = 'Attempt to bind ' . ($bindDn === null ? 'anonymously' : 'to ' . $bindDn);
+        if ($password !== null) {
+            $message .= ', using password,';
+        }
         try {
-            if ($username === null && $password === null) {
-                $result = ldap_bind($directoryService->getConnection());
-                $this->outputLine('Anonymous bind attempt %s', [$result === false ? 'failed' : 'succeeded']);
-                if ($result === false) {
-                    $this->quit(1);
-                }
-            } else {
-                $directoryService->bind($username, $password);
-                $this->outputLine('Bind successful with user %s, using password is %s', [$username, $password === null ? 'NO' : 'YES']);
-            }
-        } catch (\Exception $exception) {
-            $this->outputLine('Failed to bind with username %s, using password is %s', [$username, $password === null ? 'NO' : 'YES']);
+            new DirectoryService($options, $username, $password);
+            $this->outputLine($message . ' succeeded');
+        } catch (ConnectionException $exception) {
+            $this->outputLine($message . ' failed');
             $this->outputLine($exception->getMessage());
             $this->quit(1);
+            // quit always throws StopActionException, so we cannot get here
+            return;
         }
     }
 
     /**
      * Query the directory
      *
-     * @param string $query The query to use, for example (objectclass=*)
      * @param string $baseDn The base dn to search in
-     * @param string $providerName Name of the authentication provider to use
-     * @param string $settingsFile Path to a yaml file containing the settings to use for testing purposes
-     * @param string $displayColumns Comma separated list of columns to show, like: dn,objectclass
+     * @param string $query The query to use, for example "(objectclass=*)"
+     * @param string|null $providerName Name of the authentication provider to use
+     * @param string|null $settingsFile Path to a yaml file containing the settings to use for testing purposes
+     * @param string|null $displayColumns Comma separated list of columns to show, like "cn,objectclass"
+     * @param string|null $username Username to be used to bind
+     * @param string|null $password Password to be used to bind
+     *
      * @return void
+     * @throws StopActionException
      */
     public function queryCommand(
-        $query,
-        $baseDn = null,
-        $providerName = null,
-        $settingsFile = null,
-        $displayColumns = 'dn'
+        string $baseDn,
+        string $query,
+        string $providerName = null,
+        string $settingsFile = null,
+        string $displayColumns = null,
+        string $username = null,
+        string $password = null
     ) {
-        $directoryService = $this->getDirectoryService($providerName, $settingsFile);
+        $options = $this->getOptions($providerName, $settingsFile);
 
-        if ($baseDn === null) {
-            $baseDn = Arrays::getValueByPath($this->options, 'baseDn');
-        }
-
-        $this->outputLine('Query: %s', [$query]);
         $this->outputLine('Base DN: %s', [$baseDn]);
+        $this->outputLine('Query: %s', [$query]);
 
-        $searchResult = @ldap_search(
-            $directoryService->getConnection(),
-            $baseDn,
-            $query
-        );
+        $columns = $displayColumns === null ? null : Arrays::trimExplode(',', $displayColumns);
 
-        if ($searchResult === false) {
-            $this->outputLine(ldap_error($directoryService->getConnection()));
+        try {
+            $directoryService = new DirectoryService($options, $username, $password);
+            $entries = $directoryService->query($baseDn, $query, $columns);
+        } catch (MissingConfigurationException $exception) {
+            // We check for baseDn above, so this will never be thrown
+            /** @var Entry[] $entries */
+        } catch (\RuntimeException $exception) {
+        // line above can be replaced by the following line when we require PHP 7.1
+        // } catch (ConnectionException | \Symfony\Component\Ldap\Exception\LdapException $exception) {
+            $this->outputLine($exception->getMessage());
             $this->quit(1);
+            // quit always throws StopActionException, so we cannot get here
+            return;
         }
-
-        $this->outputLdapSearchResultTable($directoryService->getConnection(), $searchResult, $displayColumns);
-    }
-
-    /**
-     * @param string $providerName Name of the authentication provider to use
-     * @param string $settingsFile Path to a yaml file containing the settings to use for testing purposes
-     * @return DirectoryService
-     * @throws \Neos\Flow\Mvc\Exception\StopActionException
-     */
-    protected function getDirectoryService($providerName, $settingsFile)
-    {
-        $directoryServiceOptions = $this->getOptions($providerName, $settingsFile);
-        if (!is_array($directoryServiceOptions)) {
-            $this->outputLine('No configuration found for given providerName / settingsFile');
-            $this->quit(3);
-        }
-
-        return new DirectoryService('cli', $directoryServiceOptions);
+        $this->outputEntriesTable($entries);
     }
 
     /**
      * Load options by provider name or by a settings file (first has precedence)
      *
-     * @param string $providerName Name of the authentication provider to use
-     * @param string $settingsFile Path to a yaml file containing the settings to use for testing purposes
-     * @return array|mixed
-     * @throws \Neos\Flow\Mvc\Exception\StopActionException
+     * @param string|null $providerName Name of the authentication provider to use
+     * @param string|null $settingsFile Path to a yaml file containing the settings to use for testing purposes
+     * @return mixed[]
+     * @throws StopActionException
      */
-    protected function getOptions($providerName = null, $settingsFile = null)
+    protected function getOptions(string $providerName = null, string $settingsFile = null) : array
     {
-        if ($providerName !== null && array_key_exists($providerName, $this->authenticationProvidersConfiguration)) {
-            $this->options = $this->authenticationProvidersConfiguration[$providerName]['providerOptions'];
-            return $this->options;
+        if ($providerName !== null) {
+            if (isset($this->authenticationProvidersConfiguration[$providerName]['providerOptions'])
+                && \is_array($this->authenticationProvidersConfiguration[$providerName]['providerOptions'])
+            ) {
+                return $this->authenticationProvidersConfiguration[$providerName]['providerOptions'];
+            }
+            $this->outputLine('No configuration found for given providerName');
+            if ($settingsFile === null) {
+                $this->quit(3);
+                // quit always throws StopActionException, so we cannot get here
+                return [];
+            }
         }
 
         if ($settingsFile !== null) {
-            if (!file_exists($settingsFile)) {
+            if (!\file_exists($settingsFile)) {
                 $this->outputLine('Could not find settings file on path %s', [$settingsFile]);
                 $this->quit(1);
+                // quit always throws StopActionException, so we cannot get here
+                return [];
             }
-            $this->options = Yaml::parse(Files::getFileContents($settingsFile));
-            return $this->options;
+            try {
+                // Yaml::parseFile() introduced in symfony/yaml 3.4.0
+                // When above is required, we can drop dependency on neos/utility-files
+                $directoryServiceOptions = method_exists(Yaml::class, 'parseFile')
+                    ? Yaml::parseFile($settingsFile)
+                    : Yaml::parse(Files::getFileContents($settingsFile))
+                ;
+            } catch (ParseException $exception) {
+                $this->outputLine($exception->getMessage());
+                $this->quit(3);
+                // quit always throws StopActionException, so we cannot get here
+                return [];
+            }
+            if (!\is_array($directoryServiceOptions)) {
+                $this->outputLine('No configuration found in given settingsFile');
+                $this->quit(3);
+                // quit always throws StopActionException, so we cannot get here
+                return [];
+            }
+            return $directoryServiceOptions;
         }
 
-        $this->outputLine('Neither providerName or settingsFile is passed as argument. You need to pass one of those.');
+        $this->outputLine(
+            'Neither providerName nor settingsFile is passed as argument. You need to pass one of those.'
+        );
         $this->quit(1);
+        // quit always throws StopActionException, so we cannot get here
+        return [];
     }
 
     /**
-     * Outputs a table for given search result
+     * Outputs a table for given entries
      *
-     * @param resource $connection
-     * @param resource $searchResult
-     * @param $displayColumns
+     * @param Entry[] $entries
      * @return void
      */
-    protected function outputLdapSearchResultTable($connection, $searchResult, $displayColumns)
+    protected function outputEntriesTable(array $entries)
     {
-        $headers = [];
+        $headers = ['dn'];
         $rows = [];
 
-        $displayColumns = Arrays::trimExplode(',', $displayColumns);
+        $this->outputLine('%s results found', [\count($entries)]);
 
-        $entries = ldap_get_entries($connection, $searchResult);
-        $this->outputLine('%s results found', [$entries['count']]);
+        foreach ($entries as $index => $entry) {
+            $rows[$index] = ['dn' => $entry->getDn()];
+            foreach ($entry->getAttributes() as $propertyName => $propertyValue) {
+                if ($index === 0) {
+                    $headers[] = $propertyName;
+                }
 
-        foreach ($entries as $index => $ldapSearchResult) {
-            if ($index === 'count') {
-                continue;
+                $rows[$index][$propertyName] = \is_array($propertyValue)
+                    ? implode(', ', $propertyValue)
+                    : $propertyValue
+                ;
             }
-
-            if ($headers === []) {
-                foreach ($ldapSearchResult as $propertyName => $propertyValue) {
-                    if (is_integer($propertyName)) {
-                        continue;
-                    }
-                    if ($displayColumns === null || in_array($propertyName, $displayColumns)) {
-                        $headers[] = $propertyName;
-                    }
-                }
-            }
-
-            $row = [];
-            foreach ($ldapSearchResult as $propertyName => $propertyValue) {
-                if (is_integer($propertyName)) {
-                    continue;
-                }
-                if ($displayColumns !== null && !in_array($propertyName, $displayColumns)) {
-                    continue;
-                }
-
-                if (isset($propertyValue['count'])) {
-                    unset($propertyValue['count']);
-                }
-
-                if (is_array($propertyValue)) {
-                    $row[$propertyName] = implode(", ", $propertyValue);
-                } else {
-                    $row[$propertyName] = $propertyValue;
-                }
-            }
-            $rows[] = $row;
         }
 
         $this->output->outputTable($rows, $headers);
