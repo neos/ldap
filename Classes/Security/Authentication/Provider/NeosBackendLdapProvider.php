@@ -24,10 +24,9 @@ use Neos\Utility\Arrays;
  */
 class NeosBackendLdapProvider extends LdapProvider
 {
-
     /**
-     * @var CompilingEvaluator
      * @Flow\Inject
+     * @var CompilingEvaluator
      */
     protected $eelEvaluator;
 
@@ -73,5 +72,4 @@ class NeosBackendLdapProvider extends LdapProvider
 
         return $user->getAccounts()->get(0);
     }
-
 }

@@ -8,19 +8,19 @@ Neos:
           'Neos.Neos:Backend':
             provider: Neos\Ldap\Security\Authentication\Provider\NeosBackendLdapProvider
             providerOptions:
+              baseDn: dc=my-domain,dc=com
 
               connection:
-                options:
-                  host: localhost
-                  port: 389
-                  options:
-                    protocol_version: 3
-                    network_timeout: 10
                 bind:
                   dn: 'uid=ldapserviceuser,dc=example,dc=com'
                   password: 'secret'
 
-              baseDn: dc=my-domain,dc=com
+                options:
+                  host: localhost
+                  port: 389
+                  options:
+                    network_timeout: 10
+                    protocol_version: 3
 
               filter:
                 account: ['dn']
@@ -30,7 +30,6 @@ Neos:
                 account: '(uid=%s)'
                 memberOf: '(&(objectClass=posixGroup)(memberUid=%s))'
 
-Neos:
   Ldap:
     roles:
       default:

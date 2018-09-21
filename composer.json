@@ -2,12 +2,11 @@
     "name": "neos/ldap",
     "type": "neos-package",
     "description": "Ldap Authentication for Flow",
-    "license": [
-        "MIT"
-    ],
+    "license": "MIT",
     "require": {
-        "neos/flow": "^4.0",
         "ext-ldap": "*",
+
+        "neos/flow": "^4.0",
         "symfony/ldap": "^3.3"
     },
     "replace": {

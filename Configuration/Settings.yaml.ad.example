@@ -1,3 +1,5 @@
+---
+
 Neos:
   Flow:
     security:
@@ -6,31 +8,30 @@ Neos:
           'Neos.Neos:Backend':
             provider: Neos\Ldap\Security\Authentication\Provider\NeosBackendLdapProvider
             providerOptions:
+              attributesFilter:
+                account: ['dn']
+                group: ['dn']
+
+              baseDn: dc=my-domain,dc=com
 
               connection:
-                options:
-                  host: localhost
-                  port: 389
-                  options:
-                    protocol_version: 3
-                    network_timeout: 10
-                    referrals: 0
                 bind:
                   dn: 'username@domain.com'
                   #dn: 'DOMAIN\user'
                   password: 'secret'
 
-              baseDn: dc=my-domain,dc=com
-
-              attributesFilter:
-                account: ['dn']
-                group: ['dn']
+                options:
+                  host: localhost
+                  port: 389
+                  options:
+                    network_timeout: 10
+                    protocol_version: 3
+                    referrals: 0
 
               query:
                 account: '(samaccountname=%s)'
                 memberOf: '(member:1.2.840.113556.1.4.1941:=%s)'
 
-Neos:
   Ldap:
     roles:
       default:

@@ -23,7 +23,6 @@ use Neos\Ldap\Service\DirectoryService;
  */
 class UtilityCommandController extends CommandController
 {
-
     /**
      * @Flow\InjectConfiguration(path="security.authentication.providers", package="Neos.Flow")
      * @var array
@@ -34,6 +33,29 @@ class UtilityCommandController extends CommandController
      * @var array
      */
     protected $options;
+
+    /**
+     * Try authenticating a user using a DirectoryService that's connected to a directory
+     *
+     * @param string $username The username to authenticate
+     * @param string $password The password to use while authenticating
+     * @param string $providerName Name of the authentication provider to use
+     * @param string $settingsFile Path to a yaml file containing the settings to use for testing purposes
+     *
+     * @return void
+     */
+    public function authenticateCommand($username, $password, $providerName = null, $settingsFile = null)
+    {
+        $directoryService = $this->getDirectoryService($providerName, $settingsFile);
+
+        try {
+            $directoryService->authenticate($username, $password);
+            $this->outputLine('Successfully authenticated %s with given password', [$username]);
+        } catch (\Exception $exception) {
+            $this->outputLine($exception->getMessage());
+            $this->quit(1);
+        }
+    }
 
     /**
      * Simple bind command to test if a bind is possible at all
@@ -67,35 +89,13 @@ class UtilityCommandController extends CommandController
     }
 
     /**
-     * Try authenticating a user using a DirectoryService that's connected to a directory
-     *
-     * @param string $username The username to authenticate
-     * @param string $password The password to use while authenticating
-     * @param string $providerName Name of the authentication provider to use
-     * @param string $settingsFile Path to a yaml file containing the settings to use for testing purposes
-     * @return void
-     */
-    public function authenticateCommand($username, $password, $providerName = null, $settingsFile = null)
-    {
-        $directoryService = $this->getDirectoryService($providerName, $settingsFile);
-
-        try {
-            $directoryService->authenticate($username, $password);
-            $this->outputLine('Successfully authenticated %s with given password', [$username]);
-        } catch (\Exception $exception) {
-            $this->outputLine($exception->getMessage());
-            $this->quit(1);
-        }
-    }
-
-    /**
      * Query the directory
      *
      * @param string $query The query to use, for example (objectclass=*)
      * @param string $baseDn The base dn to search in
      * @param string $providerName Name of the authentication provider to use
      * @param string $settingsFile Path to a yaml file containing the settings to use for testing purposes
-     * @param string $displayColumns Comma separated list of columns to show, like:  dn,objectclass
+     * @param string $displayColumns Comma separated list of columns to show, like: dn,objectclass
      * @return void
      */
     public function queryCommand(

@@ -23,6 +23,10 @@ use Symfony\Component\Ldap\Ldap;
  */
 class DirectoryService
 {
+    /**
+     * @var Ldap
+     */
+    protected $connection;
 
     /**
      * @var string
@@ -33,11 +37,6 @@ class DirectoryService
      * @var array
      */
     protected $options;
-
-    /**
-     * @var Ldap
-     */
-    protected $connection;
 
     /**
      * @var Ldap
@@ -55,53 +54,6 @@ class DirectoryService
         $this->options = $options;
 
         $this->ldapConnect();
-    }
-
-    /**
-     * @return Ldap
-     */
-    public function getReadConnection()
-    {
-        if ($this->readConnection) {
-            return $this->readConnection;
-        }
-
-        if (!$this->connection) {
-            $this->ldapConnect();
-        }
-
-        try {
-            $this->readConnection = clone $this->connection;
-            if (!empty($this->options['connection']['bind'])) {
-                $this->readConnection->bind(
-                    $this->options['connection']['bind']['dn'],
-                    $this->options['connection']['bind']['password']
-                );
-            }
-        } catch (\Exception $exception) {
-            \Neos\Flow\var_dump($exception, 'bind exception');
-        }
-
-        return $this->readConnection;
-    }
-
-    /**
-     * Initialize the Ldap server connection
-     *
-     * Connect to the server and set communication options. Further bindings will be done
-     * by a server specific bind provider.
-     *
-     * @throws Exception
-     */
-    protected function ldapConnect()
-    {
-        if ($this->connection) {
-            return $this->connection;
-        }
-
-        $adapter = new Adapter($this->options['connection']['options']);
-        $this->connection = new Ldap($adapter);
-        return $this->connection;
     }
 
     /**
@@ -143,8 +95,8 @@ class DirectoryService
     }
 
     /**
-     * @param string $dn  User or group DN.
-     * @return array group  DN => CN mapping
+     * @param string $dn User or group DN.
+     * @return array group DN => CN mapping
      * @throws Exception
      */
     public function getMemberOf($dn)
@@ -165,4 +117,52 @@ class DirectoryService
         return $searchResult;
     }
 
+    /**
+     * @return Ldap
+     */
+    public function getReadConnection()
+    {
+        if ($this->readConnection) {
+            return $this->readConnection;
+        }
+
+        if (!$this->connection) {
+            $this->ldapConnect();
+        }
+
+        try {
+            $this->readConnection = clone $this->connection;
+            if (!empty($this->options['connection']['bind'])) {
+                $this->readConnection->bind(
+                    $this->options['connection']['bind']['dn'],
+                    $this->options['connection']['bind']['password']
+                );
+            }
+        } catch (\Exception $exception) {
+            \Neos\Flow\var_dump($exception, 'bind exception');
+        }
+
+        return $this->readConnection;
+    }
+
+    /**
+     * Initialize the Ldap server connection
+     *
+     * Connect to the server and set communication options. Further bindings will be done
+     * by a server specific bind provider.
+     *
+     * @return Ldap
+     * @throws Exception
+     */
+    protected function ldapConnect()
+    {
+        if ($this->connection) {
+            return $this->connection;
+        }
+
+        $adapter = new Adapter($this->options['connection']['options']);
+        $this->connection = new Ldap($adapter);
+
+        return $this->connection;
+    }
 }

@@ -28,19 +28,6 @@ use Neos\Ldap\Service\DirectoryService;
  */
 class LdapProvider extends PersistedUsernamePasswordProvider
 {
-
-    /**
-     * @Flow\InjectConfiguration(path="roles", package="Neos.Ldap")
-     * @var array
-     */
-    protected $rolesConfiguration;
-
-    /**
-     * @Flow\Inject
-     * @var PolicyService
-     */
-    protected $policyService;
-
     /**
      * @var DirectoryService
      */
@@ -51,6 +38,18 @@ class LdapProvider extends PersistedUsernamePasswordProvider
      * @var SecurityLoggerInterface
      */
     protected $logger;
+
+    /**
+     * @Flow\Inject
+     * @var PolicyService
+     */
+    protected $policyService;
+
+    /**
+     * @Flow\InjectConfiguration(path="roles", package="Neos.Ldap")
+     * @var array
+     */
+    protected $rolesConfiguration;
 
     /**
      * @param string $name The name of this authentication provider
@@ -68,8 +67,8 @@ class LdapProvider extends PersistedUsernamePasswordProvider
      * cached on the last successful login for the user to authenticate.
      *
      * @param TokenInterface $authenticationToken The token to be authenticated
-     * @throws UnsupportedAuthenticationTokenException
      * @return void
+     * @throws UnsupportedAuthenticationTokenException
      */
     public function authenticate(TokenInterface $authenticationToken)
     {
@@ -108,6 +107,36 @@ class LdapProvider extends PersistedUsernamePasswordProvider
     }
 
     /**
+     * @Flow\Signal
+     * @param Account $account
+     * @param array $ldapSearchResult
+     * @return void
+     */
+    public function emitAccountAuthenticated(Account $account, array $ldapSearchResult)
+    {
+    }
+
+    /**
+     * @Flow\Signal
+     * @param Account $account
+     * @param array $ldapSearchResult
+     * @return void
+     */
+    public function emitAccountCreated(Account $account, array $ldapSearchResult)
+    {
+    }
+
+    /**
+     * @Flow\Signal
+     * @param Account $account
+     * @param array $ldapSearchResult
+     * @return void
+     */
+    public function emitRolesSet(Account $account, array $ldapSearchResult)
+    {
+    }
+
+    /**
      * Create a new account for the given credentials. Return null if you
      * do not want to create a new account, that is, only authenticate
      * existing accounts from the database and fail on new logins.
@@ -122,6 +151,32 @@ class LdapProvider extends PersistedUsernamePasswordProvider
         $account->setAuthenticationProviderName($this->name);
         $this->accountRepository->add($account);
         return $account;
+    }
+
+    /**
+     * @param Account $account
+     * @return void
+     */
+    protected function resetRoles(Account $account)
+    {
+        $account->setRoles([]);
+    }
+
+    /**
+     * Set all default roles
+     *
+     * @param Account $account
+     * @return void
+     */
+    protected function setDefaultRoles(Account $account)
+    {
+        if (!is_array($this->rolesConfiguration['default'])) {
+            return;
+        }
+
+        foreach ($this->rolesConfiguration['default'] as $roleIdentifier) {
+            $account->addRole($this->policyService->getRole($roleIdentifier));
+        }
     }
 
     /**
@@ -143,53 +198,11 @@ class LdapProvider extends PersistedUsernamePasswordProvider
     }
 
     /**
-     * @param Account $account
-     */
-    protected function resetRoles(Account $account)
-    {
-        $account->setRoles([]);
-    }
-
-    /**
-     * Set all default roles
-     *
-     * @param Account $account
-     */
-    protected function setDefaultRoles(Account $account)
-    {
-        if (!is_array($this->rolesConfiguration['default'])) {
-            return;
-        }
-
-        foreach ($this->rolesConfiguration['default'] as $roleIdentifier) {
-            $account->addRole($this->policyService->getRole($roleIdentifier));
-        }
-    }
-
-    /**
-     * Map configured roles based on user dn
-     *
-     * @param Account $account
-     * @param array $ldapSearchResult
-     */
-    protected function setRolesMappedToUserDn(Account $account, array $ldapSearchResult)
-    {
-        if (!is_array($this->rolesConfiguration['userMapping'])) {
-            return;
-        }
-
-        foreach ($this->rolesConfiguration['userMapping'] as $roleIdentifier => $userDns) {
-            if (in_array($ldapSearchResult['dn'], $userDns)) {
-                $account->addRole($this->policyService->getRole($roleIdentifier));
-            }
-        }
-    }
-
-    /**
      * Map configured roles based on group membership
      *
      * @param Account $account
      * @param array $ldapSearchResult
+     * @return void
      */
     protected function setRolesBasedOnGroupMembership(Account $account, array $ldapSearchResult)
     {
@@ -206,33 +219,22 @@ class LdapProvider extends PersistedUsernamePasswordProvider
     }
 
     /**
+     * Map configured roles based on user dn
+     *
      * @param Account $account
      * @param array $ldapSearchResult
      * @return void
-     * @Flow\Signal
      */
-    public function emitAccountCreated(Account $account, array $ldapSearchResult)
+    protected function setRolesMappedToUserDn(Account $account, array $ldapSearchResult)
     {
-    }
+        if (!is_array($this->rolesConfiguration['userMapping'])) {
+            return;
+        }
 
-    /**
-     * @param Account $account
-     * @param array $ldapSearchResult
-     * @return void
-     * @Flow\Signal
-     */
-    public function emitAccountAuthenticated(Account $account, array $ldapSearchResult)
-    {
+        foreach ($this->rolesConfiguration['userMapping'] as $roleIdentifier => $userDns) {
+            if (in_array($ldapSearchResult['dn'], $userDns)) {
+                $account->addRole($this->policyService->getRole($roleIdentifier));
+            }
+        }
     }
-
-    /**
-     * @param Account $account
-     * @param array $ldapSearchResult
-     * @return void
-     * @Flow\Signal
-     */
-    public function emitRolesSet(Account $account, array $ldapSearchResult)
-    {
-    }
-
 }
