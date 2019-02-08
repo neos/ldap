@@ -142,6 +142,8 @@ class DirectoryService
             throw new Exception('Error while authenticating: authenticated user could not be fetched from the directory', 1488289104);
         }
 
+        $this->bindProvider->verifyCredentials($entries[0]['dn'], $password);
+
         return $entries[0];
     }
 
