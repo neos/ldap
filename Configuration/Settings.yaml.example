@@ -1,0 +1,97 @@
+---
+Neos:
+  Flow:
+    security:
+      authentication:
+        providers:
+          Neos.Neos:Backend:
+            # Either the generic LdapProvider, oder the NeosBackendLdapProvider for Neos CMS
+            provider: Neos\Ldap\Security\Authentication\Provider\NeosBackendLdapProvider
+            providerOptions:
+              connection:
+                # 'none', 'ssl', 'tls'
+#                encryption: none
+                host: localhost
+                # default: 3, maps to options.protocol_version
+#                version: 3
+                # default is built automatically from host (with optional port and encryption)
+#                connection_string: ''
+                # default: `$encryption == 'ssl' ? 636 : 389`
+#                port: 389
+                # if true, options.debug_level will be set to 7
+#                debug: false
+                # default value for options.referrals
+#                referrals: false
+
+                # All PHP Ldap options can be set here. Make the constant lowercase and remove the ldap_opt_ prefix
+                # Example: LDAP_OPT_PROTOCOL_VERSION becomes protocol_version
+#                options:
+#                  client_controls: []
+#                  debug_level: 7
+#                  deref: 0
+#                  error_number: 0
+#                  error_string: ''
+#                  host_name: ''
+#                  matched_dn: ''
+#                  network_timeout: 0
+#                  protocol_version: 3
+#                  referrals: false
+#                  restart: false
+#                  server_controls: []
+#                  sizelimit: 0
+#                  timelimit: 0
+#                  x_sasl_authcid: ''
+#                  x_sasl_authzid: ''
+#                  x_sasl_mech: ''
+#                  x_sasl_realm: ''
+
+              # How to authenticate towards the server. Normally this is a given service account and password.
+              # You can also bind for each user individually, using their password: %s will be replaced with username
+              bind:
+                # For AD this can also be '%s@domain.com' or 'DOMAIN\%s'
+                dn: CN=ldapserviceuser,OU=Users,DC=domain,DC=tld
+#                password: secret
+
+              queries:
+                # %s will be replaced with the username provided
+                account:
+                  baseDn: OU=Users,DC=domain,DC=com
+                  query: (uid=%s)
+                # Must be set if groupMapping will be used, %s will be replaced by full user dn!
+#                group:
+#                  baseDn: OU=Groups,DC=domain,DC=com
+#                  query: (&(objectClass=posixGroup)(memberUid=%s))
+
+              # Define what attributes are really fetched from the directory
+#              attributesFilter: [dn]
+
+              # If using the NeosBackendLdapProvider, the User will have his name mapped like this
+#              mapping:
+#                firstName: user.givenName[0]
+#                lastName: user.sn[0]
+
+#  Ldap:
+#    roles:
+#      default:
+#        - Neos.Neos:RestrictedEditor
+      # map group memberships to roles
+#      groupMapping:
+#        Neos.Neos:Administrator:
+#          - CN=Administrators,OU=Groups,DC=domain,DC=tld
+#        Neos.Neos:Editor:
+#          - CN=Administrators,OU=Groups,DC=domain,DC=tld
+#          - CN=Editors,OU=Groups,DC=domain,DC=tld
+      # map certain properties to a role, can be a regular expression (including delimeters and modifiers)
+#      propertyMapping:
+#        Neos.Neos:Administrator:
+#          objectClass: administrator
+#        Neos.Neos:Editor:
+#          department:
+#            - ~.*mathematics~i
+#            - /computer science/
+      # map certain users to roles
+#      userMapping:
+#        Neos.Neos:Administrator:
+#          - CN=Admin,OU=Users,DC=domain,DC=tld
+#        Neos.Neos:Editor:
+#          - CN=Mustermann,OU=Users,DC=domain,DC=tld

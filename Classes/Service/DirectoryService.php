@@ -12,9 +12,13 @@ namespace Neos\Ldap\Service;
  */
 
 use Neos\Flow\Annotations as Flow;
-use Neos\Flow\Error\Exception;
+use Neos\Flow\Security\Exception\MissingConfigurationException;
 use Neos\Utility\Arrays;
-use Symfony\Component\Ldap\Adapter\ExtLdap\Adapter;
+use Symfony\Component\Ldap\Entry;
+use Symfony\Component\Ldap\Exception\ConnectionException;
+use Symfony\Component\Ldap\Exception\DriverNotFoundException;
+use Symfony\Component\Ldap\Exception\LdapException;
+use Symfony\Component\Ldap\Exception\NotBoundException;
 use Symfony\Component\Ldap\Ldap;
 
 /**
@@ -23,146 +27,132 @@ use Symfony\Component\Ldap\Ldap;
  */
 class DirectoryService
 {
-
     /**
-     * @var string
+     * @var Ldap
      */
-    protected $name;
+    protected $ldap;
 
     /**
-     * @var array
+     * @var mixed[]
      */
     protected $options;
 
     /**
-     * @var Ldap
+     * @param mixed[] $options
+     * @param string|null $username
+     * @param string|null $password
+     * @throws ConnectionException
      */
-    protected $connection;
-
-    /**
-     * @var Ldap
-     */
-    protected $readConnection;
-
-    /**
-     * @param string $name
-     * @param array $options
-     * @throws Exception
-     */
-    public function __construct($name, array $options)
+    public function __construct(array $options, string $username = null, string $password = null)
     {
-        $this->name = $name;
         $this->options = $options;
 
         $this->ldapConnect();
+        $this->ldapBind($username, $password);
     }
 
     /**
-     * @return Ldap
+     * @param string $userDn User DN
+     * @return string[] Group DNs
+     * @throws MissingConfigurationException
+     * @throws LdapException
      */
-    public function getReadConnection()
+    public function getGroupDnsOfUser(string $userDn) : array
     {
-        if ($this->readConnection) {
-            return $this->readConnection;
+        if (!isset($this->options['queries']['group']['baseDn'], $this->options['queries']['group']['query'])) {
+            throw new MissingConfigurationException('Both baseDn and query have to be set for queries.group');
         }
 
-        if (!$this->connection) {
-            $this->ldapConnect();
+        $entries = $this->query(
+            $this->options['queries']['group']['baseDn'],
+            sprintf($this->options['queries']['group']['query'], $userDn),
+            ['dn']
+        );
+
+        $groupDns = [];
+        foreach ($entries as $entry) {
+            $groupDns[] = $entry->getDn();
         }
 
+        return $groupDns;
+    }
+
+    /**
+     * Get account data from ldap server
+     *
+     * @param string $username
+     * @return string[][] Search result from Ldap
+     * @throws MissingConfigurationException
+     * @throws LdapException
+     */
+    public function getUserData(string $username) : array
+    {
+        if (!isset($this->options['queries']['account']['baseDn'], $this->options['queries']['account']['query'])) {
+            throw new MissingConfigurationException('Both baseDn and query have to be set for queries.account');
+        }
+
+        $entries = $this->query(
+            $this->options['queries']['account']['baseDn'],
+            sprintf($this->options['queries']['account']['query'], $username),
+            $this->options['attributesFilter'] ?? []
+        );
+        if ($entries === []) {
+            throw new LdapException('User not found');
+        }
+
+        return Arrays::arrayMergeRecursiveOverrule($entries[0]->getAttributes(), ['dn' => [$entries[0]->getDn()]]);
+    }
+
+    /**
+     * @param string $baseDn
+     * @param string $queryString
+     * @param string[]|null $filter
+     * @return Entry[]
+     * @throws LdapException
+     */
+    public function query(string $baseDn, string $queryString, array $filter = null) : array
+    {
+        $query = $this->ldap->query($baseDn, $queryString, ['filter' => $filter ?? []]);
+        /** @var Entry[] $entries */
         try {
-            $this->readConnection = clone $this->connection;
-            if (!empty($this->options['connection']['bind'])) {
-                $this->readConnection->bind(
-                    $this->options['connection']['bind']['dn'],
-                    $this->options['connection']['bind']['password']
-                );
-            }
-        } catch (\Exception $exception) {
-            \Neos\Flow\var_dump($exception, 'bind exception');
+            $entries = $query->execute()->toArray();
+        } catch (NotBoundException $exception) {
+            // This exception should never be thrown, since we bind in constructor
         }
+        return $entries;
+    }
 
-        return $this->readConnection;
+    /**
+     * @param string|null $username
+     * @param string|null $password
+     * @return void
+     * @throws ConnectionException
+     */
+    protected function ldapBind(string $username = null, string $password = null)
+    {
+        $this->ldap->bind(
+            (isset($this->options['bind']['dn'])
+                ? sprintf($this->options['bind']['dn'], $username ?? '')
+                : null
+            ),
+            $this->options['bind']['password'] ?? $password
+        );
     }
 
     /**
      * Initialize the Ldap server connection
      *
-     * Connect to the server and set communication options. Further bindings will be done
-     * by a server specific bind provider.
+     * Connect to the server and set communication options. Further bindings will be done by a server specific bind
+     * provider.
      *
-     * @throws Exception
+     * @return void
      */
     protected function ldapConnect()
     {
-        if ($this->connection) {
-            return $this->connection;
-        }
-
-        $adapter = new Adapter($this->options['connection']['options']);
-        $this->connection = new Ldap($adapter);
-        return $this->connection;
-    }
-
-    /**
-     * Authenticate a username / password against the Ldap server
-     *
-     * @param string $username
-     * @param string $password
-     * @return array Search result from Ldap
-     * @throws Exception
-     */
-    public function authenticate($username, $password)
-    {
-        $result = $this->getReadConnection()
-            ->query(
-                $this->options['baseDn'],
-                sprintf($this->options['query']['account'], $username),
-                ['filter' => $this->options['attributesFilter']['account']]
-            )
-            ->execute()
-            ->toArray();
-
-        if (!isset($result[0])) {
-            throw new \Exception('User not found');
-        }
-
         try {
-            $this->connection->bind($result[0]->getDn(), $password);
-        } catch (\Exception $exception) {
-            \Neos\Flow\var_dump($exception);
-            die();
+            $this->ldap = Ldap::create('ext_ldap', $this->options['connection'] ?? []);
+        } catch (DriverNotFoundException $e) {
+            // since we use the default driver, this cannot happen
         }
-
-        $userData = Arrays::arrayMergeRecursiveOverrule(
-            $result[0]->getAttributes(),
-            ['dn' => $result[0]->getDn()]
-        );
-
-        return $userData;
     }
-
-    /**
-     * @param string $dn  User or group DN.
-     * @return array group  DN => CN mapping
-     * @throws Exception
-     */
-    public function getMemberOf($dn)
-    {
-        try {
-            $searchResult = $this->getReadConnection()
-                ->query(
-                    $this->options['baseDn'],
-                    sprintf($this->options['query']['memberOf'], $dn),
-                    ['filter' => $this->options['attributesFilter']['group']]
-                )
-                ->execute()
-                ->toArray();
-        } catch (\Exception $exception) {
-            throw new Exception('Error during Ldap group search: ' . $exception->getMessage(), 1443476083);
-        }
-
-        return $searchResult;
-    }
-
 }

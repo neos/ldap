@@ -1,0 +1,199 @@
+type: dictionary
+additionalProperties:
+  type: dictionary
+  properties:
+    providerOptions:
+      type: dictionary
+      additionalProperties: false
+      properties:
+        attributesFilter:
+          type: array
+          items:
+            type: string
+        bind:
+          required: true
+          type: dictionary
+          additionalProperties: false
+          properties:
+            dn:
+              required: true
+              type: string
+            password:
+              type: string
+        connection:
+          type: dictionary
+          additionalProperties: false
+          properties:
+            connection_string:
+              type: string
+              format: uri
+            debug:
+              type: boolean
+            encryption:
+              type: string
+              enum:
+                - none
+                - ssl
+                - tls
+            host:
+              type: string
+              format: host-name
+            options:
+              type: dictionary
+              additionalProperties: false
+              properties:
+                client_controls: &controls
+                  type: array
+                  items:
+                    type: dictionary
+                    additionalProperties: false
+                    properties:
+                      oid:
+                        required: true
+                        type: string
+                        enum:
+                          - LDAP_CONTROL_AUTHZID_REQUEST
+                          - LDAP_CONTROL_DONTUSECOPY
+                          - LDAP_CONTROL_MANAGEDSAIT
+                          - LDAP_CONTROL_PASSWORDPOLICYREQUEST
+                          - LDAP_CONTROL_PROXY_AUTHZ
+                          - LDAP_CONTROL_SUBENTRIES
+                          - LDAP_CONTROL_SYNC
+                          - LDAP_CONTROL_X_DOMAIN_SCOPE
+                          - LDAP_CONTROL_X_EXTENDED_DN
+                          - LDAP_CONTROL_X_INCREMENTAL_VALUES
+                          - LDAP_CONTROL_X_PERMISSIVE_MODIFY
+                          - LDAP_CONTROL_X_SEARCH_OPTIONS
+                          - LDAP_CONTROL_X_TREE_DELETE
+
+                          - LDAP_CONTROL_PAGEDRESULTS
+                          - LDAP_CONTROL_ASSERT
+                          - LDAP_CONTROL_VALUESRETURNFILTER
+                          - LDAP_CONTROL_PRE_READ
+                          - LDAP_CONTROL_POST_READ
+                          - LDAP_CONTROL_SORTREQUEST
+                          - LDAP_CONTROL_VLVREQUEST
+                      iscritical:
+                        type: boolean
+                      value:
+                        type:
+                          - string
+                          - type: array
+                            items:
+                              type: dictionary
+                              additionalProperties: false
+                              properties:
+                                attr:
+                                  required: true
+                                  type: string
+                                oid:
+                                  type: string
+                                reverse:
+                                  type: boolean
+                          - type: dictionary
+                            additionalProperties: false
+                            properties:
+                              after:
+                                type: number
+                              attrs:
+                                type: array
+                                items:
+                                  type: string
+                              attrvalue:
+                                type: string
+                              before:
+                                type: number
+                              context:
+                                type: string
+                              cookie:
+                                type: string
+                              count:
+                                type: number
+                              filter:
+                                type: string
+                              offset:
+                                type: number
+                              size:
+                                type: number
+
+                debug_level:
+                  type: integer
+                  minimum: 0
+                deref:
+                  type: integer
+                error_number:
+                  type: integer
+                error_string:
+                  type: string
+                host_name:
+                  type: string
+                matched_dn:
+                  type: string
+                network_timeout:
+                  type: integer
+                  minimum: -1
+                protocol_version:
+                  type: integer
+                  minimum: 1
+                  maximum: 3
+                referrals:
+                  type: boolean
+                restart:
+                  type: boolean
+                server_controls: *controls
+                sizelimit:
+                  type: integer
+                  minimum: 0
+                timelimit:
+                  type: integer
+                  minimum: 0
+                x_sasl_authcid:
+                  type: string
+                x_sasl_authzid:
+                  type: string
+                x_sasl_mech:
+                  type: string
+                x_sasl_realm:
+                  type: string
+            port:
+              type: integer
+              minimum: 1
+              maximum: 65535
+            referrals:
+              type: boolean
+            version:
+              type: integer
+              minimum: 1
+              maximum: 3
+        mapping:
+          type: dictionary
+          additionalProperties: false
+          properties:
+            firstName:
+              type: string
+            lastName:
+              type: string
+        queries:
+          required: true
+          type: dictionary
+          additionalProperties: false
+          properties:
+            account:
+              required: true
+              type: dictionary
+              properties:
+                baseDn:
+                  required: true
+                  type: string
+                query:
+                  required: true
+                  type: string
+            group:
+              type: dictionary
+              properties:
+                baseDn:
+                  required: true
+                  type: string
+                query:
+                  required: true
+                  type: string
