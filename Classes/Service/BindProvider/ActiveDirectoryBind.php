@@ -55,7 +55,8 @@ class ActiveDirectoryBind extends AbstractBindProvider
     public function filterUsername($username)
     {
         if (!empty($this->options['domain'])) {
-            $usernameWithoutDomain = array_pop(explode('\\', $username));
+            $usernameSegments = explode('\\', $username);
+            $usernameWithoutDomain = array_pop($usernameSegments);
             $username = $this->options['filter']['ignoreDomain'] ? $usernameWithoutDomain : addcslashes($username, '\\');
         }
         return $username;
