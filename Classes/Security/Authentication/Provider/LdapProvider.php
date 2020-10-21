@@ -102,7 +102,7 @@ class LdapProvider extends PersistedUsernamePasswordProvider
             $authenticationToken->setAccount($account);
             $this->emitAccountAuthenticated($account, $ldapUser);
         } catch (\Exception $exception) {
-            $this->logger->log('Authentication failed: ' . $exception->getMessage(), LOG_ALERT);
+            $this->logger->log(LOG_ALERT, 'Authentication failed: ' . $exception->getMessage());
             $authenticationToken->setAuthenticationStatus(TokenInterface::WRONG_CREDENTIALS);
         }
     }
