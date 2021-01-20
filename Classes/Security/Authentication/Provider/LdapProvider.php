@@ -20,6 +20,7 @@ use Neos\Flow\Security\Authentication\TokenInterface;
 use Neos\Flow\Security\Exception\UnsupportedAuthenticationTokenException;
 use Neos\Flow\Security\Policy\PolicyService;
 use Neos\Ldap\Service\DirectoryService;
+use Psr\Log\LogLevel;
 
 /**
  * Ldap Authentication provider
@@ -102,7 +103,7 @@ class LdapProvider extends PersistedUsernamePasswordProvider
             $authenticationToken->setAccount($account);
             $this->emitAccountAuthenticated($account, $ldapUser);
         } catch (\Exception $exception) {
-            $this->logger->log(LOG_ALERT, 'Authentication failed: ' . $exception->getMessage());
+            $this->logger->log(LogLevel::ALERT, 'Authentication failed: ' . $exception->getMessage());
             $authenticationToken->setAuthenticationStatus(TokenInterface::WRONG_CREDENTIALS);
         }
     }
