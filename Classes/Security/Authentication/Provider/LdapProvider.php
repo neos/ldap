@@ -47,7 +47,7 @@ class LdapProvider extends PersistedUsernamePasswordProvider
     protected $directoryService;
 
     /**
-     * @Flow\Inject(name="Neos.Flow:I18nLogger")
+     * @Flow\Inject(name="Neos.Flow:SecurityLogger")
      * @var LoggerInterface
      */
     protected $logger;
