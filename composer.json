@@ -6,11 +6,8 @@
         "MIT"
     ],
     "require": {
-        "neos/flow": "^6.0",
+        "neos/flow": "^7.0",
         "ext-ldap": "*"
-    },
-    "replace": {
-        "typo3/ldap": "self.version"
     },
     "autoload": {
         "psr-4": {
@@ -19,7 +16,7 @@
     },
     "extra": {
         "branch-alias": {
-            "dev-master": "1.0.x-dev"
+            "dev-master": "3.0.x-dev"
         }
     }
 }
