@@ -12,7 +12,6 @@ namespace Neos\Ldap\Security\Authentication\Provider;
  */
 
 use Neos\Flow\Annotations as Flow;
-use Neos\Flow\Log\PsrSecurityLoggerInterface;
 use Neos\Flow\Security\Account;
 use Neos\Flow\Security\Authentication\Provider\PersistedUsernamePasswordProvider;
 use Neos\Flow\Security\Authentication\Token\UsernamePassword;
@@ -20,6 +19,7 @@ use Neos\Flow\Security\Authentication\TokenInterface;
 use Neos\Flow\Security\Exception\UnsupportedAuthenticationTokenException;
 use Neos\Flow\Security\Policy\PolicyService;
 use Neos\Ldap\Service\DirectoryService;
+use Psr\Log\LoggerInterface;
 
 /**
  * Ldap Authentication provider
