@@ -6,7 +6,7 @@
         "MIT"
     ],
     "require": {
-        "neos/flow": "^5.0 || ^6.0",
+        "neos/flow": "^6.0",
         "ext-ldap": "*"
     },
     "replace": {
