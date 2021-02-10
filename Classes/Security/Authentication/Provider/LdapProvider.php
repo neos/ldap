@@ -12,7 +12,7 @@ namespace Neos\Ldap\Security\Authentication\Provider;
  */
 
 use Neos\Flow\Annotations as Flow;
-use Neos\Flow\Log\SecurityLoggerInterface;
+use Neos\Flow\Log\PsrSecurityLoggerInterface;
 use Neos\Flow\Security\Account;
 use Neos\Flow\Security\Authentication\Provider\PersistedUsernamePasswordProvider;
 use Neos\Flow\Security\Authentication\Token\UsernamePassword;
@@ -48,7 +48,7 @@ class LdapProvider extends PersistedUsernamePasswordProvider
 
     /**
      * @Flow\Inject
-     * @var SecurityLoggerInterface
+     * @var PsrSecurityLoggerInterface
      */
     protected $logger;
 
@@ -102,7 +102,7 @@ class LdapProvider extends PersistedUsernamePasswordProvider
             $authenticationToken->setAccount($account);
             $this->emitAccountAuthenticated($account, $ldapUser);
         } catch (\Exception $exception) {
-            $this->logger->log('Authentication failed: ' . $exception->getMessage(), LOG_ALERT);
+            $this->logger->alert('Authentication failed: ' . $exception->getMessage());
             $authenticationToken->setAuthenticationStatus(TokenInterface::WRONG_CREDENTIALS);
         }
     }
