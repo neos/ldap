@@ -20,7 +20,6 @@ use Neos\Flow\Security\Authentication\TokenInterface;
 use Neos\Flow\Security\Exception\UnsupportedAuthenticationTokenException;
 use Neos\Flow\Security\Policy\PolicyService;
 use Neos\Ldap\Service\DirectoryService;
-use Psr\Log\LogLevel;
 
 /**
  * Ldap Authentication provider
