@@ -23,6 +23,7 @@ use Neos\Flow\Security\Exception\NoSuchRoleException;
 use Neos\Flow\Security\Exception\UnsupportedAuthenticationTokenException;
 use Neos\Flow\Security\Policy\PolicyService;
 use Neos\Ldap\Service\DirectoryService;
+use Psr\Log\LoggerInterface;
 use Symfony\Component\Ldap\Exception\LdapException;
 
 /**
@@ -48,6 +49,21 @@ class LdapProvider extends PersistedUsernamePasswordProvider
      * @var mixed[]
      */
     protected $rolesConfiguration;
+    /**
+     * @Flow\Inject(name="Neos.Flow:SecurityLogger")
+     * @var LoggerInterface
+     */
+    protected $logger;
+
+    /**
+     * @param string $name The name of this authentication provider
+     * @param array $options Additional configuration options
+     */
+    public function __construct($name, array $options)
+    {
+        parent::__construct($name, $options);
+        $this->directoryService = new DirectoryService($name, $options);
+    }
 
     /**
      * Authenticate the current token. If it's not possible to connect to the LDAP server the provider tries to
@@ -55,6 +71,7 @@ class LdapProvider extends PersistedUsernamePasswordProvider
      * user to authenticate.
      *
      * @param TokenInterface $authenticationToken The token to be authenticated
+     * @throws UnsupportedAuthenticationTokenException
      * @return void
      * @throws UnsupportedAuthenticationTokenException
      * @throws MissingConfigurationException
