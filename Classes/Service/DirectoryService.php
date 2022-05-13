@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 namespace Neos\Ldap\Service;
 
 /*
@@ -33,12 +34,12 @@ class DirectoryService
     protected $ldap;
 
     /**
-     * @var mixed[]
+     * @var array
      */
-    protected $options;
+    protected array $options = [];
 
     /**
-     * @param mixed[] $options
+     * @param array $options
      * @param string|null $username
      * @param string|null $password
      * @throws ConnectionException
@@ -57,7 +58,7 @@ class DirectoryService
      * @throws MissingConfigurationException
      * @throws LdapException
      */
-    public function getGroupDnsOfUser(string $userDn) : array
+    public function getGroupDnsOfUser(string $userDn): array
     {
         if (!isset($this->options['queries']['group']['baseDn'], $this->options['queries']['group']['query'])) {
             throw new MissingConfigurationException('Both baseDn and query have to be set for queries.group');
@@ -85,7 +86,7 @@ class DirectoryService
      * @throws MissingConfigurationException
      * @throws LdapException
      */
-    public function getUserData(string $username) : array
+    public function getUserData(string $username): array
     {
         if (!isset($this->options['queries']['account']['baseDn'], $this->options['queries']['account']['query'])) {
             throw new MissingConfigurationException('Both baseDn and query have to be set for queries.account');
@@ -110,7 +111,7 @@ class DirectoryService
      * @return Entry[]
      * @throws LdapException
      */
-    public function query(string $baseDn, string $queryString, array $filter = null) : array
+    public function query(string $baseDn, string $queryString, array $filter = null): array
     {
         $query = $this->ldap->query($baseDn, $queryString, ['filter' => $filter ?? []]);
         /** @var Entry[] $entries */
@@ -128,7 +129,7 @@ class DirectoryService
      * @return void
      * @throws ConnectionException
      */
-    protected function ldapBind(string $username = null, string $password = null)
+    protected function ldapBind(string $username = null, string $password = null): void
     {
         $this->ldap->bind(
             (isset($this->options['bind']['dn'])
@@ -147,7 +148,7 @@ class DirectoryService
      *
      * @return void
      */
-    protected function ldapConnect()
+    protected function ldapConnect(): void
     {
         try {
             $this->ldap = Ldap::create('ext_ldap', $this->options['connection'] ?? []);

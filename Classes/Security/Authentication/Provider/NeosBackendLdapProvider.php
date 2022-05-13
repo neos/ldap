@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 namespace Neos\Ldap\Security\Authentication\Provider;
 
 /*
@@ -40,7 +41,7 @@ class NeosBackendLdapProvider extends LdapProvider
     /**
      * @inheritdoc
      */
-    protected function createAccount(array $credentials, array $ldapUserData)
+    protected function createAccount(array $credentials, array $ldapUserData): ?Account
     {
         $mapping = Arrays::arrayMergeRecursiveOverrule(
             [

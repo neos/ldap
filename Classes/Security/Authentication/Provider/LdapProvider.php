@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 namespace Neos\Ldap\Security\Authentication\Provider;
 
 /*
@@ -12,18 +13,20 @@ namespace Neos\Ldap\Security\Authentication\Provider;
  */
 
 use Neos\Flow\Annotations as Flow;
+use Neos\Flow\Configuration\Exception\InvalidConfigurationTypeException;
 use Neos\Flow\Persistence\Exception\IllegalObjectTypeException;
 use Neos\Flow\Security\Account;
 use Neos\Flow\Security\Authentication\Provider\PersistedUsernamePasswordProvider;
 use Neos\Flow\Security\Authentication\Token\UsernamePassword;
 use Neos\Flow\Security\Authentication\TokenInterface;
+use Neos\Flow\Security\Exception as SecurityException;
 use Neos\Flow\Security\Exception\InvalidAuthenticationStatusException;
 use Neos\Flow\Security\Exception\MissingConfigurationException;
 use Neos\Flow\Security\Exception\NoSuchRoleException;
 use Neos\Flow\Security\Exception\UnsupportedAuthenticationTokenException;
 use Neos\Flow\Security\Policy\PolicyService;
 use Neos\Ldap\Service\DirectoryService;
-use Psr\Log\LoggerInterface;
+use Symfony\Component\Ldap\Exception\ConnectionException;
 use Symfony\Component\Ldap\Exception\LdapException;
 
 /**
@@ -46,24 +49,9 @@ class LdapProvider extends PersistedUsernamePasswordProvider
 
     /**
      * @Flow\InjectConfiguration(path="roles", package="Neos.Ldap")
-     * @var mixed[]
+     * @var array
      */
-    protected $rolesConfiguration;
-    /**
-     * @Flow\Inject(name="Neos.Flow:SecurityLogger")
-     * @var LoggerInterface
-     */
-    protected $logger;
-
-    /**
-     * @param string $name The name of this authentication provider
-     * @param array $options Additional configuration options
-     */
-    public function __construct($name, array $options)
-    {
-        parent::__construct($name, $options);
-        $this->directoryService = new DirectoryService($name, $options);
-    }
+    protected array $rolesConfiguration = [];
 
     /**
      * Authenticate the current token. If it's not possible to connect to the LDAP server the provider tries to
@@ -71,10 +59,11 @@ class LdapProvider extends PersistedUsernamePasswordProvider
      * user to authenticate.
      *
      * @param TokenInterface $authenticationToken The token to be authenticated
-     * @throws UnsupportedAuthenticationTokenException
      * @return void
-     * @throws UnsupportedAuthenticationTokenException
      * @throws MissingConfigurationException
+     * @throws UnsupportedAuthenticationTokenException
+     * @throws InvalidConfigurationTypeException
+     * @throws SecurityException
      */
     public function authenticate(TokenInterface $authenticationToken)
     {
@@ -116,19 +105,15 @@ class LdapProvider extends PersistedUsernamePasswordProvider
                 }
                 $this->emitAccountCreated($account, $ldapUserData);
             }
-        } catch (\RuntimeException $exception) {
-        // line above can be replaced by the following line when we require PHP 7.1
-        // } catch (\Symfony\Component\Ldap\Exception\ConnectionException | LdapException $exception) {
+        } catch (ConnectionException|LdapException $exception) {
             try {
                 $authenticationToken->setAuthenticationStatus(TokenInterface::WRONG_CREDENTIALS);
                 if ($account !== null) {
                     $account->authenticationAttempted(TokenInterface::WRONG_CREDENTIALS);
                     $this->accountRepository->update($account);
-                    $this->persistenceManager->whitelistObject($account);
+                    $this->persistenceManager->allowObject($account);
                 }
-            } catch (InvalidAuthenticationStatusException $exception) {
-                // This exception is never thrown
-            } catch (IllegalObjectTypeException $exception) {
+            } catch (InvalidAuthenticationStatusException|IllegalObjectTypeException $exception) {
                 // This exception is never thrown
             }
             return;
@@ -143,12 +128,10 @@ class LdapProvider extends PersistedUsernamePasswordProvider
             $account->authenticationAttempted(TokenInterface::AUTHENTICATION_SUCCESSFUL);
             $this->accountRepository->update($account);
             $authenticationToken->setAuthenticationStatus(TokenInterface::AUTHENTICATION_SUCCESSFUL);
-        } catch (InvalidAuthenticationStatusException $exception) {
-            // This exception is never thrown
-        } catch (IllegalObjectTypeException $exception) {
+        } catch (InvalidAuthenticationStatusException|IllegalObjectTypeException $exception) {
             // This exception is never thrown
         }
-        $this->persistenceManager->whitelistObject($account);
+        $this->persistenceManager->allowObject($account);
         $authenticationToken->setAccount($account);
         $this->emitAccountAuthenticated($account, $ldapUserData);
     }
@@ -159,7 +142,7 @@ class LdapProvider extends PersistedUsernamePasswordProvider
      * @param string[][] $ldapUserData
      * @return void
      */
-    public function emitAccountCreated(Account $account, array $ldapUserData)
+    public function emitAccountCreated(Account $account, array $ldapUserData): void
     {
     }
 
@@ -169,7 +152,7 @@ class LdapProvider extends PersistedUsernamePasswordProvider
      * @param string[][] $ldapUserData
      * @return void
      */
-    public function emitAccountAuthenticated(Account $account, array $ldapUserData)
+    public function emitAccountAuthenticated(Account $account, array $ldapUserData): void
     {
     }
 
@@ -179,7 +162,7 @@ class LdapProvider extends PersistedUsernamePasswordProvider
      * @param string[][] $ldapUserData
      * @return void
      */
-    public function emitRolesSet(Account $account, array $ldapUserData)
+    public function emitRolesSet(Account $account, array $ldapUserData): void
     {
     }
 
@@ -191,7 +174,7 @@ class LdapProvider extends PersistedUsernamePasswordProvider
      * @param string[][] $ldapUserData
      * @return Account|null
      */
-    protected function createAccount(array $credentials, array $ldapUserData)
+    protected function createAccount(array $credentials, array $ldapUserData): ?Account
     {
         $account = new Account();
         $account->setAccountIdentifier($credentials['username']);
@@ -208,7 +191,7 @@ class LdapProvider extends PersistedUsernamePasswordProvider
      * @param Account $account
      * @return void
      */
-    protected function resetRoles(Account $account)
+    protected function resetRoles(Account $account): void
     {
         try {
             $account->setRoles([]);
@@ -222,8 +205,10 @@ class LdapProvider extends PersistedUsernamePasswordProvider
      *
      * @param Account $account
      * @return void
+     * @throws InvalidConfigurationTypeException
+     * @throws SecurityException
      */
-    protected function setDefaultRoles(Account $account)
+    protected function setDefaultRoles(Account $account): void
     {
         if (!\is_array($this->rolesConfiguration['default'])) {
             return;
@@ -250,8 +235,10 @@ class LdapProvider extends PersistedUsernamePasswordProvider
      * @param Account $account
      * @param string[][] $ldapUserData
      * @return void
+     * @throws InvalidConfigurationTypeException
+     * @throws SecurityException
      */
-    protected function setRoles(Account $account, array $ldapUserData)
+    protected function setRoles(Account $account, array $ldapUserData): void
     {
         $this->resetRoles($account);
         $this->setDefaultRoles($account);
@@ -259,9 +246,7 @@ class LdapProvider extends PersistedUsernamePasswordProvider
         $this->setRolesByUserDn($account, $ldapUserData['dn'][0]);
         try {
             $this->setRolesByGroupDns($account, $this->directoryService->getGroupDnsOfUser($ldapUserData['dn'][0]));
-        } catch (\Exception $exception) {
-        // line above can be replaced by the following line when we require PHP 7.1
-        // } catch (MissingConfigurationException | \Symfony\Component\Ldap\Exception\LdapException $exception) {
+        } catch (MissingConfigurationException|LdapException $exception) {
             // If groups cannot be retrieved, they won't get set
             // todo: logging
         }
@@ -279,8 +264,10 @@ class LdapProvider extends PersistedUsernamePasswordProvider
      * @param Account $account
      * @param string[] $groupDns
      * @return void
+     * @throws InvalidConfigurationTypeException
+     * @throws SecurityException
      */
-    protected function setRolesByGroupDns(Account $account, array $groupDns)
+    protected function setRolesByGroupDns(Account $account, array $groupDns): void
     {
         if (!\is_array($this->rolesConfiguration['groupMapping'])) {
             return;
@@ -307,8 +294,10 @@ class LdapProvider extends PersistedUsernamePasswordProvider
      * @param Account $account
      * @param string $userDn
      * @return void
+     * @throws InvalidConfigurationTypeException
+     * @throws SecurityException
      */
-    protected function setRolesByUserDn(Account $account, string $userDn)
+    protected function setRolesByUserDn(Account $account, string $userDn): void
     {
         if (!\is_array($this->rolesConfiguration['userMapping'])) {
             return;
@@ -335,8 +324,10 @@ class LdapProvider extends PersistedUsernamePasswordProvider
      * @param Account $account
      * @param string[][] $ldapUserData
      * @return void
+     * @throws InvalidConfigurationTypeException
+     * @throws SecurityException
      */
-    protected function setRolesByUserProperties(Account $account, array $ldapUserData)
+    protected function setRolesByUserProperties(Account $account, array $ldapUserData): void
     {
         if (!\is_array($this->rolesConfiguration['propertyMapping'])) {
             return;
