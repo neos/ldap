@@ -1,0 +1,29 @@
+type: dictionary
+additionalProperties: false
+properties:
+  default:
+    type: array
+    items:
+      type: string
+  groupMapping:
+    type: dictionary
+    additionalProperties:
+      type: array
+      items:
+        type: string
+  propertyMapping:
+    type: dictionary
+    additionalProperties:
+      type: dictionary
+      additionalProperties:
+        type:
+          - string
+          - type: array
+            items:
+              type: string
+  userMapping:
+    type: dictionary
+    additionalProperties:
+      type: array
+      items:
+        type: string
